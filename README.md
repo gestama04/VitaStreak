@@ -327,4 +327,4 @@ Software Engineer / Mobile Developer / Web Lead
 
 GitHub: https://github.com/gestama04
 
-LinkedIn: https://www.linkedin.com/in/bernardosilva04/
+LinkedIn: https://www.linkedin.com/in/eng-bernardo-silva
