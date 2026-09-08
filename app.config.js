@@ -32,6 +32,7 @@ export default {
 
     plugins: [
       'expo-router',
+      "expo-font",
       [
         'expo-splash-screen',
         {
@@ -61,6 +62,7 @@ export default {
       'expo-web-browser',
       'expo-asset',
       'expo-localization',
+
     ],
 
     experiments: {
