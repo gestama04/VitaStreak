@@ -80,3 +80,8 @@ yarn-error.*
 .env.*
 
 google-services.json
+
+# Temporary localization inventory
+extrair-textos.cjs
+textos-app.txt
+textos-app-parte-*.txt
