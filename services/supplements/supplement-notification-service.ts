@@ -1,17 +1,48 @@
-import * as Notifications from 'expo-notifications'
+import { isRunningInExpoGo } from 'expo'
 import { Platform } from 'react-native'
 import { Supplement } from '../../types/supplements/supplement'
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-})
+type NotificationsModule = typeof import('expo-notifications')
+
+let notificationsPromise: Promise<NotificationsModule> | null = null
+let notificationHandlerConfigured = false
+
+async function getNotifications(): Promise<NotificationsModule | null> {
+  if (isRunningInExpoGo()) {
+    return null
+  }
+
+  if (!notificationsPromise) {
+    notificationsPromise = import('expo-notifications')
+  }
+
+  const Notifications = await notificationsPromise
+
+  if (!notificationHandlerConfigured) {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    })
+
+    notificationHandlerConfigured = true
+  }
+
+  return Notifications
+}
 
 export async function setupSupplementNotifications() {
+  const Notifications = await getNotifications()
+
+if (!Notifications) {
+  console.log(
+    '[SupplementNotifications] Ignoradas no Expo Go'
+  )
+  return false
+}
   const { status: existingStatus } = await Notifications.getPermissionsAsync()
   let finalStatus = existingStatus
 
@@ -85,9 +116,20 @@ function getDaysOfWeek(supplement: Partial<Supplement>) {
   return [1, 2, 3, 4, 5, 6, 0]
 }
 
-export async function cancelSupplementNotifications(notificationIds?: string[] | null) {
+export async function cancelSupplementNotifications(
+  notificationIds?: string[] | null
+) {
   if (!notificationIds || notificationIds.length === 0) {
     console.log('[SUPP_NOTIF] CANCEL_SKIP no ids')
+    return
+  }
+
+  const Notifications = await getNotifications()
+
+  if (!Notifications) {
+    console.log(
+      '[SUPP_NOTIF] Cancelamento ignorado no Expo Go'
+    )
     return
   }
 
@@ -130,6 +172,11 @@ export async function scheduleSupplementNotifications(
     })
     return []
   }
+  const Notifications = await getNotifications()
+
+if (!Notifications) {
+  return []
+}
 
   const times = getReminderTimes(supplement)
   const days = getDaysOfWeek(supplement)
@@ -210,7 +257,17 @@ console.log(
 }
 
 export async function debugScheduledSupplementNotifications() {
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync()
+  const Notifications = await getNotifications()
+
+  if (!Notifications) {
+    console.log(
+      '[SupplementNotifications] Debug ignorado no Expo Go'
+    )
+    return []
+  }
+
+  const scheduled =
+    await Notifications.getAllScheduledNotificationsAsync()
 
   console.log(
     '[SupplementNotifications] Agendadas agora:',
