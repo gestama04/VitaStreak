@@ -16,6 +16,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useTheme } from '../app/theme-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 interface InitialSetupScreenProps {
   onComplete: () => void
@@ -33,8 +34,8 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
   const handleSaveSettings = async () => {
   if (!acceptedLegal) {
     showAlert(
-      'Aceitação necessária',
-      'Tens de aceitar a Política de Privacidade e os Termos de Utilização para continuar.',
+      t('setup.acceptanceRequired'),
+      t('setup.acceptanceMessage'),
       [{ text: 'OK', onPress: () => {} }]
     )
     return
@@ -44,9 +45,9 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
 
   try {
       showAlert(
-        'Configuração completa!',
-        'O VitaStreak está pronto. Podes adicionar suplementos, definir horários e receber lembretes.',
-        [{ text: 'Continuar', onPress: onComplete }]
+        t('setup.completeTitle'),
+        t('setup.completeMessage'),
+        [{ text: t('setup.continue'), onPress: onComplete }]
       )
     } catch (error) {
       console.error('Erro no setup:', error)
@@ -66,11 +67,11 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
         />
 
         <Text style={[styles.title, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Configurar VitaStreak
+          {t('setup.screenTitle')}
         </Text>
 
         <Text style={[styles.subtitle, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Vamos preparar a tua rotina em 2 passos simples.
+          {t('setup.screenSubtitle')}
         </Text>
       </View>
 
@@ -78,39 +79,39 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
         <MaterialCommunityIcons name="pill" size={78} color="#7c3aed" />
 
         <Text style={[styles.welcomeTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Bem-vindo!
+          {t('setup.welcome')}
         </Text>
 
         <Text style={[styles.welcomeDescription, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Configura lembretes, acompanha as tomas diárias e mantém a tua rotina de suplementos em dia.
+          {t('setup.welcomeDescription')}
         </Text>
 
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="calendar-check" size={24} color="#22c55e" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Rotina diária
+              {t('setup.dailyRoutine')}
             </Text>
           </View>
 
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="bell-ring" size={24} color="#f59e0b" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Lembretes personalizados
+              {t('setup.customReminders')}
             </Text>
           </View>
 
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="robot-outline" size={24} color="#38bdf8" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Análise por IA
+              {t('setup.aiAnalysis')}
             </Text>
           </View>
         </View>
       </View>
 
       <TouchableOpacity style={styles.nextButton} onPress={() => setCurrentStep(2)}>
-        <Text style={styles.nextButtonText}>Começar configuração</Text>
+        <Text style={styles.nextButtonText}>{t('setup.startSetup')}</Text>
         <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
       </TouchableOpacity>
     </View>
@@ -134,7 +135,7 @@ const renderNotificationSettings = () => (
           <View style={styles.progressFill} />
         </View>
         <Text style={[styles.progressText, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Passo 2 de 2
+          {t('setup.stepTwo')}
         </Text>
       </View>
 
@@ -142,11 +143,11 @@ const renderNotificationSettings = () => (
         <MaterialCommunityIcons name="bell-ring" size={70} color="#7c3aed" />
 
         <Text style={[styles.stepTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Notificações
+          {t('setup.notifications')}
         </Text>
 
         <Text style={[styles.stepDescription, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Recebe lembretes à hora definida em cada suplemento.
+          {t('setup.notificationsDescription')}
         </Text>
       </View>
 
@@ -154,10 +155,10 @@ const renderNotificationSettings = () => (
         <View style={styles.settingRow}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.settingLabel, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Ativar lembretes
+              {t('setup.enableReminders')}
             </Text>
             <Text style={[styles.settingHelper, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-              Podes alterar isto mais tarde nas definições.
+              {t('setup.changeLater')}
             </Text>
           </View>
 
@@ -171,7 +172,7 @@ const renderNotificationSettings = () => (
 
         <View style={styles.legalBox}>
           <TouchableOpacity onPress={() => router.push('/legal-vitastreak' as any)}>
-            <Text style={styles.legalLink}>Ver Política de Privacidade e Termos</Text>
+            <Text style={styles.legalLink}>{t('setup.viewLegal')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.legalRow}
@@ -184,7 +185,7 @@ const renderNotificationSettings = () => (
             </View>
 
             <Text style={[styles.legalText, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-              Li e aceito a Política de Privacidade e os Termos de Utilização.
+              {t('setup.acceptLegal')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -192,7 +193,7 @@ const renderNotificationSettings = () => (
         <View style={styles.infoBox}>
           <MaterialCommunityIcons name="clock-outline" size={22} color="#38bdf8" />
           <Text style={styles.infoText}>
-            Ao adicionares um suplemento, escolhes a hora e os dias da semana.
+            {t('setup.scheduleInfo')}
           </Text>
         </View>
         {Platform.OS === 'android' ? (
@@ -200,11 +201,11 @@ const renderNotificationSettings = () => (
     <MaterialCommunityIcons name="battery-heart" size={22} color="#facc15" />
     <View style={{ flex: 1 }}>
       <Text style={styles.infoText}>
-        Para lembretes mais fiáveis, recomendamos definir a bateria como “Sem restrições”.
+        {t('setup.batteryInfo')}
       </Text>
 
       <TouchableOpacity style={styles.batteryButton} onPress={openBatterySettings}>
-        <Text style={styles.batteryButtonText}>Melhorar notificações</Text>
+        <Text style={styles.batteryButtonText}>{t('setup.improveNotifications')}</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -215,7 +216,7 @@ const renderNotificationSettings = () => (
       <View style={styles.stepButtons}>
         <TouchableOpacity style={styles.backButton} onPress={() => setCurrentStep(1)}>
           <MaterialCommunityIcons name="arrow-left" size={20} color="#7c3aed" />
-          <Text style={styles.backButtonText}>Voltar</Text>
+          <Text style={styles.backButtonText}>{t('setup.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -224,7 +225,7 @@ const renderNotificationSettings = () => (
           disabled={isLoading}
         >
           <Text style={styles.finishButtonText}>
-            {isLoading ? 'A guardar...' : 'Concluir'}
+            {isLoading ? t('setup.saving') : t('setup.finish')}
           </Text>
           <MaterialCommunityIcons name="check" size={20} color="#fff" />
         </TouchableOpacity>
