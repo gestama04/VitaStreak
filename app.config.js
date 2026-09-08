@@ -27,7 +27,7 @@ export default {
     web: {
       bundler: 'metro',
       output: 'static',
-      favicon: './assets/images/favicon.png',
+      favicon: './assets/images/icon.png',
     },
 
     plugins: [
@@ -35,6 +35,7 @@ export default {
       "expo-font",
       "@react-native-community/datetimepicker",
       "expo-sharing",
+      "expo-status-bar",
       [
         'expo-splash-screen',
         {
