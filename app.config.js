@@ -33,6 +33,8 @@ export default {
     plugins: [
       'expo-router',
       "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-sharing",
       [
         'expo-splash-screen',
         {
