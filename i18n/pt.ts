@@ -199,6 +199,23 @@ const pt = {
     aiAnalysis: 'Análise IA',
     aiAnalysisDescription: 'Rever rotina e pontos a confirmar',
   },
+  today: {
+    error: 'Erro',
+    loadError: 'Não foi possível carregar os suplementos de hoje.',
+    updateError: 'Não foi possível atualizar esta toma.',
+    title: 'Hoje',
+    loadingRoutine: 'A carregar rotina...',
+    nothingScheduled: 'Nada agendado para hoje',
+    completedCount: '%{completed}/%{total} tomas feitas',
+    noDoses: 'Sem tomas',
+    routineComplete: 'Rotina completa',
+    todayProgress: 'Progresso de hoje',
+    preparingDay: 'A preparar o teu dia...',
+    nothingToday: 'Nada para hoje',
+    emptyMessage: 'Adiciona suplementos e define os dias da semana para aparecerem aqui.',
+    addSupplement: 'Adicionar suplemento',
+    doseAt: 'Toma das %{time}',
+  },
 } as const
 
 export default pt

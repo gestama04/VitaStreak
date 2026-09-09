@@ -199,6 +199,23 @@ const en = {
     aiAnalysis: 'AI analysis',
     aiAnalysisDescription: 'Review your routine and items to confirm',
   },
+  today: {
+    error: 'Error',
+    loadError: 'Today’s supplements could not be loaded.',
+    updateError: 'This dose could not be updated.',
+    title: 'Today',
+    loadingRoutine: 'Loading routine...',
+    nothingScheduled: 'Nothing scheduled for today',
+    completedCount: '%{completed}/%{total} doses completed',
+    noDoses: 'No doses',
+    routineComplete: 'Routine complete',
+    todayProgress: 'Today’s progress',
+    preparingDay: 'Preparing your day...',
+    nothingToday: 'Nothing for today',
+    emptyMessage: 'Add supplements and choose the days of the week for them to appear here.',
+    addSupplement: 'Add supplement',
+    doseAt: 'Dose at %{time}',
+  },
 } as const
 
 export default en

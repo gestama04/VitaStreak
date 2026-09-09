@@ -22,6 +22,7 @@ import {
   unmarkSupplementTaken,
 } from '../services/supplements/supplement-service'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 export default function TodayScreen() {
   const router = useRouter()
@@ -38,7 +39,7 @@ export default function TodayScreen() {
       setItems(data)
     } catch (error) {
       console.error('Erro ao carregar Hoje:', error)
-      showAlert('Erro', 'Não foi possível carregar os suplementos de hoje.', [
+      showAlert(t('today.error'), t('today.loadError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -88,7 +89,7 @@ if (willComplete) {
       console.error('Erro ao atualizar toma:', error)
       setItems(previous)
 
-      showAlert('Erro', 'Não foi possível atualizar esta toma.', [
+      showAlert(t('today.error'), t('today.updateError'), [
         { text: 'OK', onPress: () => {} },
       ])
     }
@@ -113,13 +114,13 @@ if (willComplete) {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Hoje</Text>
+              <Text style={styles.title}>{t('today.title')}</Text>
               <Text style={styles.subtitle}>
                 {loading
-                  ? 'A carregar rotina...'
+                  ? t('today.loadingRoutine')
                   : total === 0
-                    ? 'Nada agendado para hoje'
-                    : `${completed}/${total} tomas feitas`}
+                    ? t('today.nothingScheduled')
+                    : t('today.completedCount', { completed, total })}
               </Text>
             </View>
 
@@ -135,10 +136,10 @@ if (willComplete) {
             <View style={styles.progressHeader}>
               <Text style={styles.progressTitle}>
                 {total === 0
-                  ? 'Sem tomas'
+                  ? t('today.noDoses')
                   : completed === total
-                    ? 'Rotina completa'
-                    : 'Progresso de hoje'}
+                    ? t('today.routineComplete')
+                    : t('today.todayProgress')}
               </Text>
 
               <Text style={styles.progressValue}>
@@ -154,7 +155,7 @@ if (willComplete) {
           {loading ? (
             <View style={styles.loadingBox}>
               <ActivityIndicator color="#22c55e" size="large" />
-              <Text style={styles.loadingText}>A preparar o teu dia...</Text>
+              <Text style={styles.loadingText}>{t('today.preparingDay')}</Text>
             </View>
           ) : total === 0 ? (
             <View style={styles.empty}>
@@ -162,9 +163,9 @@ if (willComplete) {
                 <Ionicons name="calendar-outline" size={42} color="#c4b5fd" />
               </View>
 
-              <Text style={styles.emptyTitle}>Nada para hoje</Text>
+              <Text style={styles.emptyTitle}>{t('today.nothingToday')}</Text>
               <Text style={styles.emptyText}>
-                Adiciona suplementos e define os dias da semana para aparecerem aqui.
+                {t('today.emptyMessage')}
               </Text>
 
               <TouchableOpacity
@@ -172,7 +173,7 @@ if (willComplete) {
                 onPress={() => router.push('/add-supplement' as any)}
               >
                 <Ionicons name="add-circle-outline" size={22} color="white" />
-                <Text style={styles.addButtonText}>Adicionar suplemento</Text>
+                <Text style={styles.addButtonText}>{t('today.addSupplement')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -191,7 +192,7 @@ if (willComplete) {
                     ? `${item.dosage_amount} ${item.dosage_unit}`
                     : null
 
-                const metaText = [time ? `Toma das ${time}` : null, dosage]
+                const metaText = [time ? t('today.doseAt', { time }) : null, dosage]
   .filter(Boolean)
   .join(' • ')
 
