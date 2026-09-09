@@ -216,6 +216,23 @@ const en = {
     addSupplement: 'Add supplement',
     doseAt: 'Dose at %{time}',
   },
+  supplements: {
+    error: 'Error',
+    loadError: 'The supplements could not be loaded.',
+    deleteTitle: 'Delete supplement',
+    deleteConfirmation: 'Are you sure you want to delete “%{name}”?',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    deleteError: 'The supplement could not be deleted.',
+    optionsQuestion: 'What would you like to do?',
+    edit: 'Edit',
+    title: 'Supplements',
+    subtitle: 'Manage your list, details, and schedules.',
+    loading: 'Loading supplements...',
+    emptyTitle: 'No supplements yet',
+    emptyMessage: 'Add your first supplement using a photo, AI, or manual entry.',
+    addSupplement: 'Add supplement',
+  },
 } as const
 
 export default en

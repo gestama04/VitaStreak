@@ -216,6 +216,23 @@ const pt = {
     addSupplement: 'Adicionar suplemento',
     doseAt: 'Toma das %{time}',
   },
+  supplements: {
+    error: 'Erro',
+    loadError: 'Não foi possível carregar os suplementos.',
+    deleteTitle: 'Apagar suplemento',
+    deleteConfirmation: 'Tens a certeza de que queres apagar “%{name}”?',
+    cancel: 'Cancelar',
+    delete: 'Apagar',
+    deleteError: 'Não foi possível apagar o suplemento.',
+    optionsQuestion: 'O que queres fazer?',
+    edit: 'Editar',
+    title: 'Suplementos',
+    subtitle: 'Gere a tua lista, detalhes e horários.',
+    loading: 'A carregar suplementos...',
+    emptyTitle: 'Ainda não tens suplementos',
+    emptyMessage: 'Adiciona o teu primeiro suplemento por fotografia, IA ou manualmente.',
+    addSupplement: 'Adicionar suplemento',
+  },
 } as const
 
 export default pt

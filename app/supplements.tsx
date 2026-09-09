@@ -19,6 +19,7 @@ import {
 } from '../services/supplements/supplement-service'
 import { Supplement } from '../types/supplements/supplement'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 export default function SupplementsScreen() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function SupplementsScreen() {
       setSupplements(data)
     } catch (error) {
       console.error('Erro ao carregar suplementos:', error)
-      showAlert('Erro', 'Não foi possível carregar os suplementos.', [
+      showAlert(t('supplements.error'), t('supplements.loadError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -52,12 +53,12 @@ export default function SupplementsScreen() {
     if (!item.id) return
 
     showAlert(
-      'Apagar suplemento',
-      `Tens a certeza que queres apagar "${item.name}"?`,
+      t('supplements.deleteTitle'),
+      t('supplements.deleteConfirmation', { name: item.name }),
       [
-        { text: 'Cancelar', onPress: () => {} },
+        { text: t('supplements.cancel'), onPress: () => {} },
         {
-          text: 'Apagar',
+          text: t('supplements.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -69,7 +70,7 @@ export default function SupplementsScreen() {
             } catch (error) {
               console.error('Erro ao apagar suplemento:', error)
               setTimeout(() => {
-  showAlert('Erro', 'Não foi possível apagar o suplemento.', [
+  showAlert(t('supplements.error'), t('supplements.deleteError'), [
     { text: 'OK', onPress: () => {} },
   ])
 }, 300)
@@ -81,10 +82,10 @@ export default function SupplementsScreen() {
   }
 
   const openSupplementOptions = (item: Supplement) => {
-  showAlert(item.name, 'O que queres fazer?', [
-    { text: 'Cancelar', onPress: () => {} },
+  showAlert(item.name, t('supplements.optionsQuestion'), [
+    { text: t('supplements.cancel'), onPress: () => {} },
     {
-      text: 'Editar',
+      text: t('supplements.edit'),
       onPress: () => {
         router.push({
           pathname: '/edit-supplement' as any,
@@ -93,7 +94,7 @@ export default function SupplementsScreen() {
       },
     },
     {
-      text: 'Apagar',
+      text: t('supplements.delete'),
       style: 'destructive',
       onPress: () => {
         setTimeout(() => {
@@ -123,9 +124,9 @@ export default function SupplementsScreen() {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Suplementos</Text>
+              <Text style={styles.title}>{t('supplements.title')}</Text>
               <Text style={styles.subtitle}>
-                Gere a tua lista, detalhes e horários.
+                {t('supplements.subtitle')}
               </Text>
             </View>
 
@@ -140,7 +141,7 @@ export default function SupplementsScreen() {
           {loading ? (
             <View style={styles.loadingBox}>
               <ActivityIndicator color="#22c55e" size="large" />
-              <Text style={styles.loadingText}>A carregar suplementos...</Text>
+              <Text style={styles.loadingText}>{t('supplements.loading')}</Text>
             </View>
           ) : supplements.length === 0 ? (
             <View style={styles.empty}>
@@ -148,9 +149,9 @@ export default function SupplementsScreen() {
                 <Ionicons name="nutrition-outline" size={42} color="#c4b5fd" />
               </View>
 
-              <Text style={styles.emptyTitle}>Sem suplementos ainda</Text>
+              <Text style={styles.emptyTitle}>{t('supplements.emptyTitle')}</Text>
               <Text style={styles.emptyText}>
-                Adiciona a tua primeira vitamina por foto, IA ou manualmente.
+                {t('supplements.emptyMessage')}
               </Text>
 
               <TouchableOpacity
@@ -158,7 +159,7 @@ export default function SupplementsScreen() {
                 onPress={() => router.push('/add-supplement' as any)}
               >
                 <Ionicons name="add-circle-outline" size={22} color="white" />
-                <Text style={styles.emptyButtonText}>Adicionar suplemento</Text>
+                <Text style={styles.emptyButtonText}>{t('supplements.addSupplement')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
