@@ -21,6 +21,7 @@ import { supabase } from '../supabase-config'
 import { uploadImageToCloudinary } from '../cloudinary-service'
 import { useAuth } from '../auth-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 import {
   getSupplements,
   getTodaySupplements,
@@ -54,7 +55,7 @@ setDisplayName(
   currentUser.user_metadata?.full_name ||
   currentUser.user_metadata?.name ||
   currentUser.user_metadata?.display_name ||
-  'Utilizador'
+  t('profile.defaultName')
 )
     setEmail(currentUser.email || '')
     setPhotoURL(
@@ -93,7 +94,7 @@ setDisplayName(
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       console.log('PROFILE PHOTO START')
       if (status !== 'granted') {
-        showAlert('Permissão necessária', 'É necessário acesso à galeria.', [
+        showAlert(t('profile.permissionRequired'), t('profile.galleryPermission'), [
           { text: 'OK', onPress: () => {} },
         ])
         return
@@ -146,12 +147,12 @@ console.log('PROFILE BEFORE SUPABASE UPDATE')
       setPhotoURL(upload.secure_url)
       
 
-      showAlert('Sucesso', 'Foto de perfil atualizada.', [
+      showAlert(t('profile.success'), t('profile.photoUpdated'), [
         { text: 'OK', onPress: () => {} },
       ])
     } catch (error) {
       console.error('Erro ao atualizar foto:', error)
-      showAlert('Erro', 'Não foi possível atualizar a foto.', [
+      showAlert(t('profile.error'), t('profile.photoUpdateError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -161,10 +162,10 @@ console.log('PROFILE BEFORE SUPABASE UPDATE')
   }
 
   const handleLogout = () => {
-    showAlert('Terminar sessão', 'Queres sair da tua conta?', [
-      { text: 'Cancelar', onPress: () => {} },
+    showAlert(t('profile.logoutTitle'), t('profile.logoutMessage'), [
+      { text: t('profile.cancel'), onPress: () => {} },
       {
-        text: 'Sair',
+        text: t('profile.logout'),
         style: 'destructive',
         onPress: async () => {
           await logout()
@@ -182,15 +183,15 @@ const sendPasswordReset = async () => {
   console.log('RESET ERROR:', error)
 
   if (error) {
-    showAlert('Erro', 'Não foi possível enviar o email para alterar a palavra-passe.', [
+    showAlert(t('profile.error'), t('profile.passwordEmailError'), [
       { text: 'OK', onPress: () => {} },
     ])
     return
   }
 
   showAlert(
-    'Email enviado',
-    'Enviámos um código para alterares a palavra-passe.',
+    t('profile.emailSent'),
+    t('profile.passwordCodeSent'),
     [
       {
         text: 'OK',
@@ -220,8 +221,8 @@ const sendPasswordReset = async () => {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Perfil</Text>
-              <Text style={styles.subtitle}>A tua rotina e conta VitaStreak.</Text>
+              <Text style={styles.title}>{t('profile.title')}</Text>
+              <Text style={styles.subtitle}>{t('profile.subtitle')}</Text>
             </View>
 
             <TouchableOpacity
@@ -256,41 +257,41 @@ const sendPasswordReset = async () => {
             <Text style={styles.name}>{displayName}</Text>
             <Text style={styles.email}>{email}</Text>
             {birthDate ? (
-  <Text style={styles.birthDate}>Nascimento: {birthDate}</Text>
+  <Text style={styles.birthDate}>{t('profile.birthDate', { date: birthDate })}</Text>
 ) : null}
           </View>
 
           <View style={styles.statsGrid}>
-            <StatCard label="Streak" value={`🔥 ${streak}`} />
-            <StatCard label="Hoje" value={`${todayCompleted}/${todayTotal}`} />
-            <StatCard label="Suplementos" value={`${totalSupplements}`} />
+            <StatCard label={t('profile.streak')} value={`🔥 ${streak}`} />
+            <StatCard label={t('profile.today')} value={`${todayCompleted}/${todayTotal}`} />
+            <StatCard label={t('profile.supplements')} value={`${totalSupplements}`} />
           </View>
 
           <View style={styles.menuCard}>
             <MenuItem
   icon="calendar-outline"
-  title="Histórico"
+  title={t('profile.history')}
   onPress={() => router.push('/history' as any)}
 />
             <MenuItem
               icon="nutrition-outline"
-              title="Os meus suplementos"
+              title={t('profile.mySupplements')}
               onPress={() => router.push('/supplements' as any)}
             />
             <MenuItem
   icon="key-outline"
-  title="Mudar palavra-passe"
+  title={t('profile.changePassword')}
   onPress={sendPasswordReset}
 />
             <MenuItem
               icon="log-out-outline"
-              title="Terminar sessão"
+              title={t('profile.logoutTitle')}
               danger
               onPress={handleLogout}
             />
           </View>
 
-          <Text style={styles.footer}>VitaStreak • versão 1.0.0</Text>
+          <Text style={styles.footer}>{t('profile.footer')}</Text>
         </ScrollView>
 
         <AlertComponent />
