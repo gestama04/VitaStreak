@@ -245,7 +245,7 @@ const openBatterySettings = async () => {
             <SettingItem
               icon="information-circle-outline"
               title={t('settings.version')}
-              subtitle="VitaStreak 1.0.0"
+              subtitle="VitaStreak 1.1.0"
             />
           </View>
 <View style={styles.card}>

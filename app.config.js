@@ -2,7 +2,7 @@ export default {
   expo: {
     name: 'VitaStreak',
     slug: 'vitastreak',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'vitastreak',
@@ -14,7 +14,7 @@ export default {
     },
 
     android: {
-      versionCode: 8,
+      versionCode: 9,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#0f172a',

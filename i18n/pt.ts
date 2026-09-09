@@ -415,7 +415,7 @@ const pt = {
     history: 'Histórico',
     mySupplements: 'Os meus suplementos',
     changePassword: 'Mudar palavra-passe',
-    footer: 'VitaStreak • versão 1.0.0',
+    footer: 'VitaStreak • versão 1.1.0',
   },
   settings: {
     deleteAccountTitle: 'Apagar conta',
