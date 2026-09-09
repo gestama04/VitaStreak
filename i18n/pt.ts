@@ -352,6 +352,23 @@ const pt = {
     created: 'Criado: %{date}',
     updated: 'Atualizado: %{date}',
   },
+  history: {
+    title: 'Histórico',
+    subtitle: 'Consulta as tomas concluídas nos últimos 30 dias.',
+    loading: 'A carregar histórico...',
+    emptyTitle: 'Ainda não existe histórico',
+    emptyMessage: 'Quando marcares tomas como concluídas, aparecerão aqui.',
+    errorTitle: 'Não foi possível carregar',
+    errorMessage: 'O histórico não pôde ser carregado. Tenta novamente.',
+    retry: 'Tentar novamente',
+    completedDoses: 'tomas concluídas',
+    activeDays: 'dias com atividade',
+    scheduledAt: 'Agendado para as %{time}',
+    takenAt: 'Tomado às %{time}',
+    unknownTime: 'hora desconhecida',
+    unknownSupplement: 'Suplemento',
+    deletedSupplement: 'Suplemento eliminado',
+  },
 } as const
 
 export default pt

@@ -352,6 +352,23 @@ const en = {
     created: 'Created: %{date}',
     updated: 'Updated: %{date}',
   },
+  history: {
+    title: 'History',
+    subtitle: 'View completed doses from the last 30 days.',
+    loading: 'Loading history...',
+    emptyTitle: 'No history yet',
+    emptyMessage: 'Completed doses will appear here after you mark them as taken.',
+    errorTitle: 'Unable to load history',
+    errorMessage: 'The history could not be loaded. Try again.',
+    retry: 'Try again',
+    completedDoses: 'completed doses',
+    activeDays: 'active days',
+    scheduledAt: 'Scheduled for %{time}',
+    takenAt: 'Taken at %{time}',
+    unknownTime: 'unknown time',
+    unknownSupplement: 'Supplement',
+    deletedSupplement: 'Deleted supplement',
+  },
 } as const
 
 export default en
