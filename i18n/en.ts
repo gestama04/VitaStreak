@@ -212,6 +212,8 @@ const en = {
     todayProgress: 'Today’s progress',
     preparingDay: 'Preparing your day...',
     nothingToday: 'Nothing for today',
+    noActiveDosesTitle: 'No active doses',
+    noActiveDosesMessage: 'Completed doses remain in your history, but there are no active doses to manage.',
     emptyMessage: 'Add supplements and choose the days of the week for them to appear here.',
     addSupplement: 'Add supplement',
     doseAt: 'Dose at %{time}',

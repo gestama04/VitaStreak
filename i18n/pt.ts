@@ -212,6 +212,8 @@ const pt = {
     todayProgress: 'Progresso de hoje',
     preparingDay: 'A preparar o teu dia...',
     nothingToday: 'Nada para hoje',
+    noActiveDosesTitle: 'Sem tomas ativas',
+    noActiveDosesMessage: 'As tomas concluídas continuam registadas no histórico, mas já não existem tomas ativas para gerir.',
     emptyMessage: 'Adiciona suplementos e define os dias da semana para aparecerem aqui.',
     addSupplement: 'Adicionar suplemento',
     doseAt: 'Toma das %{time}',

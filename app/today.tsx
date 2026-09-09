@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 import {
   getTodaySupplements,
+  getTodayDoseSummary,
   markSupplementTaken,
   TodaySupplement,
   unmarkSupplementTaken,
@@ -29,14 +30,19 @@ export default function TodayScreen() {
   const { showAlert, AlertComponent } = useCustomAlert()
   const [showConfetti, setShowConfetti] = useState(false)
   const [items, setItems] = useState<TodaySupplement[]>([])
+  const [loggedCompleted, setLoggedCompleted] = useState(0)
   const [loading, setLoading] = useState(true)
   const { width } = Dimensions.get('window')
 
   const loadToday = async () => {
     try {
       setLoading(true)
-      const data = await getTodaySupplements()
+      const [data, summary] = await Promise.all([
+        getTodaySupplements(),
+        getTodayDoseSummary(),
+      ])
       setItems(data)
+      setLoggedCompleted(summary.completed)
     } catch (error) {
       console.error('Erro ao carregar Hoje:', error)
       showAlert(t('today.error'), t('today.loadError'), [
@@ -53,8 +59,10 @@ export default function TodayScreen() {
     }, [])
   )
 
-  const completed = items.filter((item) => item.taken_today).length
-  const total = items.length
+  const activeCompleted = items.filter((item) => item.taken_today).length
+  const pending = Math.max(items.length - activeCompleted, 0)
+  const completed = loggedCompleted
+  const total = completed + pending
   const progress = total > 0 ? (completed / total) * 100 : 0
 
   const toggleTaken = async (item: TodaySupplement) => {
@@ -157,15 +165,15 @@ if (willComplete) {
               <ActivityIndicator color="#22c55e" size="large" />
               <Text style={styles.loadingText}>{t('today.preparingDay')}</Text>
             </View>
-          ) : total === 0 ? (
+          ) : items.length === 0 ? (
             <View style={styles.empty}>
               <View style={styles.emptyIcon}>
                 <Ionicons name="calendar-outline" size={42} color="#c4b5fd" />
               </View>
 
-              <Text style={styles.emptyTitle}>{t('today.nothingToday')}</Text>
+              <Text style={styles.emptyTitle}>{completed > 0 ? t('today.noActiveDosesTitle') : t('today.nothingToday')}</Text>
               <Text style={styles.emptyText}>
-                {t('today.emptyMessage')}
+                {completed > 0 ? t('today.noActiveDosesMessage') : t('today.emptyMessage')}
               </Text>
 
               <TouchableOpacity
