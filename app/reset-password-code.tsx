@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../supabase-config'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 export default function ResetPasswordCodeScreen() {
   const router = useRouter()
@@ -49,7 +50,7 @@ export default function ResetPasswordCodeScreen() {
     const cleanEmail = email.trim()
 
     if (!cleanEmail) {
-      showAlert('Email em falta', 'Insere o teu email para receberes um novo código.', [
+      showAlert(t('resetPassword.missingEmailTitle'), t('resetPassword.missingEmailMessage'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -65,13 +66,13 @@ export default function ResetPasswordCodeScreen() {
       setToken('')
 
       showAlert(
-        'Novo código enviado',
-        'Enviámos um novo código para o teu email. Usa sempre o código mais recente.',
+        t('resetPassword.newCodeSentTitle'),
+        t('resetPassword.newCodeSentMessage'),
         [{ text: 'OK', onPress: () => {} }]
       )
     } catch (error) {
       console.error('RESET SEND TOKEN ERROR:', error)
-      showAlert('Erro', 'Não foi possível enviar um novo código. Tenta novamente.', [
+      showAlert(t('resetPassword.error'), t('resetPassword.sendCodeError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -83,14 +84,14 @@ export default function ResetPasswordCodeScreen() {
     const text = message?.toLowerCase?.() || ''
 
     if (text.includes('different from the old password')) {
-      return 'A nova password não pode ser igual à password atual ou a uma password recente. Escolhe uma password diferente.'
+      return t('resetPassword.samePasswordError')
     }
 
     if (text.includes('token has expired') || text.includes('invalid')) {
-      return 'O código expirou ou já foi usado. Pede um novo código e usa o mais recente.'
+      return t('resetPassword.expiredCodeError')
     }
 
-    return 'Não foi possível alterar a password. Confirma os dados e tenta novamente.'
+    return t('resetPassword.genericError')
   }
 
   const handleReset = async () => {
@@ -98,19 +99,19 @@ export default function ResetPasswordCodeScreen() {
     const cleanToken = token.trim()
 
     if (!cleanEmail || !cleanToken || !password || !confirmPassword) {
-      showAlert('Erro', 'Preenche todos os campos.', [{ text: 'OK', onPress: () => {} }])
+      showAlert(t('resetPassword.error'), t('resetPassword.fillAllFields'), [{ text: 'OK', onPress: () => {} }])
       return
     }
 
     if (password !== confirmPassword) {
-      showAlert('Erro', 'As passwords não coincidem.', [{ text: 'OK', onPress: () => {} }])
+      showAlert(t('resetPassword.error'), t('resetPassword.passwordsMismatch'), [{ text: 'OK', onPress: () => {} }])
       return
     }
 
     if (!passwordOk) {
       showAlert(
-        'Password incompleta',
-        'A password deve ter pelo menos 8 caracteres, maiúscula, minúscula, número e caractere especial.',
+        t('resetPassword.incompletePassword'),
+        t('resetPassword.passwordRulesMessage'),
         [{ text: 'OK', onPress: () => {} }]
       )
       return
@@ -146,13 +147,13 @@ export default function ResetPasswordCodeScreen() {
       await supabase.auth.signOut({ scope: 'global' })
 
       showAlert(
-        'Password atualizada',
-        'A tua password foi alterada com sucesso. Faz login com a nova password.',
+        t('resetPassword.updatedTitle'),
+        t('resetPassword.updatedMessage'),
         [{ text: 'OK', onPress: () => router.replace('/login-vitastreak' as any) }]
       )
     } catch (error: any) {
       console.error('RESET OTP ERROR:', error)
-      showAlert('Erro', getFriendlyError(error?.message), [
+      showAlert(t('resetPassword.error'), getFriendlyError(error?.message), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -168,14 +169,14 @@ export default function ResetPasswordCodeScreen() {
       <LinearGradient colors={['#0f172a', '#1e1b4b', '#312e81', '#155e75']} style={styles.gradient}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
           <View style={styles.card}>
-            <Text style={styles.title}>Nova password</Text>
+            <Text style={styles.title}>{t('resetPassword.title')}</Text>
             <Text style={styles.subtitle}>
-              Insere o código recebido por email e cria uma nova password.
+              {t('resetPassword.subtitle')}
             </Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder={t('resetPassword.email')}
               placeholderTextColor="#94a3b8"
               value={email}
               onChangeText={setEmail}
@@ -185,7 +186,7 @@ export default function ResetPasswordCodeScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="Código do email"
+              placeholder={t('resetPassword.emailCode')}
               placeholderTextColor="#94a3b8"
               value={token}
               onChangeText={setToken}
@@ -195,26 +196,26 @@ export default function ResetPasswordCodeScreen() {
             <PasswordInput
               value={password}
               onChangeText={setPassword}
-              placeholder="Nova password"
+              placeholder={t('resetPassword.newPassword')}
               visible={showPassword}
               onToggle={() => setShowPassword(!showPassword)}
             />
 
             {password.length > 0 && (
               <View style={styles.requirementsContainer}>
-                <Text style={styles.requirementsTitle}>A password deve conter:</Text>
-                <Requirement ok={passwordStrength.hasMinLength} text="Pelo menos 8 caracteres" />
-                <Requirement ok={passwordStrength.hasUpperCase} text="Uma letra maiúscula" />
-                <Requirement ok={passwordStrength.hasLowerCase} text="Uma letra minúscula" />
-                <Requirement ok={passwordStrength.hasNumber} text="Um número" />
-                <Requirement ok={passwordStrength.hasSpecialChar} text="Um caractere especial" />
+                <Text style={styles.requirementsTitle}>{t('resetPassword.passwordMustContain')}</Text>
+                <Requirement ok={passwordStrength.hasMinLength} text={t('resetPassword.minCharacters')} />
+                <Requirement ok={passwordStrength.hasUpperCase} text={t('resetPassword.uppercaseLetter')} />
+                <Requirement ok={passwordStrength.hasLowerCase} text={t('resetPassword.lowercaseLetter')} />
+                <Requirement ok={passwordStrength.hasNumber} text={t('resetPassword.number')} />
+                <Requirement ok={passwordStrength.hasSpecialChar} text={t('resetPassword.specialCharacter')} />
               </View>
             )}
 
             <PasswordInput
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirmar nova password"
+              placeholder={t('resetPassword.confirmNewPassword')}
               visible={showConfirmPassword}
               onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
             />
@@ -224,7 +225,7 @@ export default function ResetPasswordCodeScreen() {
               onPress={handleReset}
               disabled={isLoading}
             >
-              {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Guardar nova password</Text>}
+              {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>{t('resetPassword.saveNewPassword')}</Text>}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -232,11 +233,11 @@ export default function ResetPasswordCodeScreen() {
               onPress={sendNewToken}
               disabled={isSendingToken}
             >
-              {isSendingToken ? <ActivityIndicator color="white" /> : <Text style={styles.secondaryButtonText}>Pedir novo código</Text>}
+              {isSendingToken ? <ActivityIndicator color="white" /> : <Text style={styles.secondaryButtonText}>{t('resetPassword.requestNewCode')}</Text>}
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.linkButton} onPress={() => router.replace('/login-vitastreak' as any)}>
-              <Text style={styles.linkText}>Voltar ao login</Text>
+              <Text style={styles.linkText}>{t('resetPassword.backToLogin')}</Text>
             </TouchableOpacity>
           </View>
 
