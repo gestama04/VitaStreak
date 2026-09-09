@@ -62,6 +62,25 @@ export default {
           },
         },
       ],
+      [
+  'react-native-android-widget',
+  {
+    widgets: [
+      {
+        name: 'VitaStreakDashboard',
+        label: 'VitaStreak',
+        description: 'Streak e progresso diário',
+        minWidth: '250dp',
+        minHeight: '110dp',
+        targetCellWidth: 4,
+        targetCellHeight: 2,
+        resizeMode: 'horizontal|vertical',
+        previewImage: './assets/images/icon.png',
+        updatePeriodMillis: 1800000,
+      },
+    ],
+  },
+],
       'expo-web-browser',
       'expo-asset',
       'expo-localization',

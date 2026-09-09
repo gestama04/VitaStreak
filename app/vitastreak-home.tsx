@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native'
+import { isRunningInExpoGo } from 'expo'
 import { useFocusEffect, useRouter, Stack } from 'expo-router'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import Svg, { Circle } from 'react-native-svg'
@@ -326,6 +327,37 @@ const yesterdayStatus = weekDays.find((day) => day.date === yesterdayString)
 const canUseFreeze =
   freezeBalance > 0 &&
   (!yesterdayStatus || (!yesterdayStatus.completed && !yesterdayStatus.frozen))
+  useEffect(() => {
+  if (loading || isRunningInExpoGo()) return
+
+  const syncWidget = async () => {
+    try {
+      const { updateVitaStreakWidget } = await import(
+        '../widgets/vita-streak-widget-service'
+      )
+
+      await updateVitaStreakWidget({
+        streak,
+        completed: activeCompleted,
+        total: todayItems.length,
+        language: i18n.locale === 'pt' ? 'pt' : 'en',
+      })
+    } catch (error) {
+      console.warn(
+        '[VitaStreakWidget] Não foi possível atualizar:',
+        error
+      )
+    }
+  }
+
+  syncWidget()
+}, [
+  loading,
+  streak,
+  activeCompleted,
+  todayItems.length,
+  i18n.locale,
+])
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
