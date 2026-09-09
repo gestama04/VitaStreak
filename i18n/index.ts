@@ -3,22 +3,29 @@ import { getLocales } from 'expo-localization'
 
 import en from './en'
 import pt from './pt'
+import type { AppLanguage, LanguagePreference } from '../services/language-service'
 
-export type AppLanguage = 'pt' | 'en'
+export type { AppLanguage, LanguagePreference }
 
-const deviceLanguage = getLocales()[0]?.languageCode
+export function getSystemLanguage(): AppLanguage {
+  return getLocales()[0]?.languageCode === 'pt' ? 'pt' : 'en'
+}
 
-export const currentLanguage: AppLanguage =
-  deviceLanguage === 'pt' ? 'pt' : 'en'
+export function resolveLanguage(preference: LanguagePreference): AppLanguage {
+  return preference === 'system' ? getSystemLanguage() : preference
+}
 
-export const i18n = new I18n({
-  pt,
-  en,
-})
+export let currentLanguage: AppLanguage = getSystemLanguage()
 
+export const i18n = new I18n({ pt, en })
 i18n.locale = currentLanguage
 i18n.defaultLocale = 'en'
 i18n.enableFallback = true
+
+export function setI18nLanguage(language: AppLanguage) {
+  currentLanguage = language
+  i18n.locale = language
+}
 
 export function t(
   key: string,

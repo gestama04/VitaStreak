@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router'
 import { ThemeProvider, useTheme } from './theme-context'
+import { LanguageProvider } from './language-context'
 import { View, StyleSheet, StatusBar, Platform } from 'react-native'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
@@ -161,11 +162,13 @@ function AppLayout() {
 
 export default function Layout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppLayout />
-      </AuthProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }
 

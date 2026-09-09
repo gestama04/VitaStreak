@@ -16,6 +16,8 @@ import { rescheduleAllSupplementNotifications } from '../services/supplements/su
 import { supabase } from '../supabase-config'
 import useCustomAlert from '../hooks/useCustomAlert'
 import { t } from '@/i18n'
+import { useLanguage } from './language-context'
+import type { LanguagePreference } from '../services/language-service'
 
 function hasErrorContext(error: unknown): error is {
   context: { text: () => Promise<string> }
@@ -36,6 +38,39 @@ function hasErrorContext(error: unknown): error is {
 export default function SettingsScreen() {
   const router = useRouter()
   const { showAlert, AlertComponent } = useCustomAlert()
+  const { languagePreference, setLanguagePreference } = useLanguage()
+
+  const getLanguageLabel = (preference: LanguagePreference) => {
+    if (preference === 'pt') return t('settings.languagePortuguese')
+    if (preference === 'en') return t('settings.languageEnglish')
+    return t('settings.languageAutomatic')
+  }
+
+  const chooseLanguage = () => {
+    const choose = (preference: LanguagePreference) => {
+      void setLanguagePreference(preference)
+    }
+
+    showAlert(t('settings.chooseLanguage'), t('settings.chooseLanguageMessage'), [
+      {
+        text: (languagePreference === 'system' ? '✓ ' : '') + t('settings.languageAutomatic'),
+        onPress: () => choose('system'),
+      },
+      {
+        text: (languagePreference === 'pt' ? '✓ ' : '') + t('settings.languagePortuguese'),
+        onPress: () => choose('pt'),
+      },
+      {
+        text: (languagePreference === 'en' ? '✓ ' : '') + t('settings.languageEnglish'),
+        onPress: () => choose('en'),
+      },
+      {
+        text: t('settings.cancel'),
+        style: 'cancel',
+        onPress: () => {},
+      },
+    ])
+  }
 
   const deleteAccount = () => {
   showAlert(
@@ -101,6 +136,17 @@ const openBatterySettings = async () => {
               <Text style={styles.title}>{t('settings.title')}</Text>
               <Text style={styles.subtitle}>{t('settings.subtitle')}</Text>
             </View>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{t('settings.application')}</Text>
+
+            <SettingItem
+              icon="language-outline"
+              title={t('settings.language')}
+              subtitle={getLanguageLabel(languagePreference)}
+              onPress={chooseLanguage}
+            />
           </View>
 
           <View style={styles.card}>
