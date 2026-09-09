@@ -15,6 +15,23 @@ import { Ionicons } from '@expo/vector-icons'
 import { rescheduleAllSupplementNotifications } from '../services/supplements/supplement-service'
 import { supabase } from '../supabase-config'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
+
+function hasErrorContext(error: unknown): error is {
+  context: { text: () => Promise<string> }
+} {
+  if (typeof error !== 'object' || error === null || !('context' in error)) {
+    return false
+  }
+
+  const context = (error as { context?: unknown }).context
+  return (
+    typeof context === 'object' &&
+    context !== null &&
+    'text' in context &&
+    typeof (context as { text?: unknown }).text === 'function'
+  )
+}
 
 export default function SettingsScreen() {
   const router = useRouter()
@@ -22,12 +39,12 @@ export default function SettingsScreen() {
 
   const deleteAccount = () => {
   showAlert(
-    'Apagar conta',
-    'Tens a certeza? Esta ação é irreversível e vai apagar a tua conta.',
+  t('settings.deleteAccountTitle'),
+  t('settings.deleteAccountMessage'),
     [
-      { text: 'Cancelar', onPress: () => {} },
+      { text: t('settings.cancel'), onPress: () => {} },
       {
-        text: 'Apagar',
+        text: t('settings.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -37,15 +54,15 @@ export default function SettingsScreen() {
 
             await supabase.auth.signOut()
             router.replace('/login-vitastreak' as any)
-          } catch (error: any) {
+          } catch (error: unknown) {
   console.error('Erro ao apagar conta:', error)
 
-  if (error?.context) {
+  if (hasErrorContext(error)) {
     const body = await error.context.text()
     console.error('DELETE USER FUNCTION BODY:', body)
   }
 
-  showAlert('Erro', 'Não foi possível apagar a conta.', [
+  showAlert(t('settings.error'), t('settings.deleteAccountError'), [
     { text: 'OK', onPress: () => {} },
   ])
 }
@@ -81,83 +98,83 @@ const openBatterySettings = async () => {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Definições</Text>
-              <Text style={styles.subtitle}>Preferências e dados da app.</Text>
+              <Text style={styles.title}>{t('settings.title')}</Text>
+              <Text style={styles.subtitle}>{t('settings.subtitle')}</Text>
             </View>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Rotina</Text>
+            <Text style={styles.sectionTitle}>{t('settings.routine')}</Text>
 
             <SettingItem
               icon="notifications-outline"
-              title="Notificações"
-              subtitle="Geridas automaticamente por suplemento"
+              title={t('settings.notifications')}
+              subtitle={t('settings.notificationsSubtitle')}
             />
 
             <SettingItem
               icon="time-outline"
-              title="Tomas por dia"
-              subtitle="Configuras isto ao adicionar ou editar suplementos"
+              title={t('settings.dosesPerDay')}
+              subtitle={t('settings.dosesPerDaySubtitle')}
             />
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Conta</Text>
+            <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
 
             <SettingItem
               icon="trash-outline"
-              title="Apagar conta"
-              subtitle="Remove dados da VitaStreak"
+              title={t('settings.deleteAccountTitle')}
+              subtitle={t('settings.deleteAccountSubtitle')}
               danger
               onPress={deleteAccount}
             />
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Sobre</Text>
+            <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
 
             <SettingItem
               icon="mail-outline"
-              title="Contactar suporte"
-              subtitle="Enviar email"
+              title={t('settings.contactSupport')}
+              subtitle={t('settings.sendEmail')}
               onPress={() => Linking.openURL('mailto:benigestama@gmail.com')}
             />
             <SettingItem
   icon="document-text-outline"
-  title="Privacidade e Termos"
-  subtitle="Ver Política de Privacidade e Termos de Utilização"
+  title={t('settings.privacyAndTerms')}
+  subtitle={t('settings.privacyAndTermsSubtitle')}
   onPress={() => router.push('/legal-vitastreak' as any)}
 />
             <SettingItem
               icon="information-circle-outline"
-              title="Versão"
+              title={t('settings.version')}
               subtitle="VitaStreak 1.0.0"
             />
           </View>
 <View style={styles.card}>
-  <Text style={styles.sectionTitle}>Ajuda</Text>
+  <Text style={styles.sectionTitle}>{t('settings.help')}</Text>
     {Platform.OS === 'android' ? (
   <SettingItem
     icon="battery-charging-outline"
-    title="Melhorar notificações"
-    subtitle="Abre as definições da app para colocares a bateria como Sem restrições."
+    title={t('settings.improveNotifications')}
+    subtitle={t('settings.improveNotificationsSubtitle')}
     onPress={openBatterySettings}
   />
 ) : null}
   <SettingItem
     icon="build-outline"
-    title="Reparar notificações"
-    subtitle="Usa isto se editares tomas e as notificações deixarem de aparecer. A app limpa e volta a agendar todos os lembretes."
+    title={t('settings.repairNotifications')}
+    subtitle={t('settings.repairNotificationsSubtitle')}
     onPress={async () => {
       try {
         await rescheduleAllSupplementNotifications()
-        showAlert('Notificações reparadas', 'Os lembretes foram limpos e reagendados.', [
+        showAlert(t('settings.notificationsRepaired'), t('settings.notificationsRepairedMessage'), [
           { text: 'OK', onPress: () => {} },
         ])
       } catch (error) {
         console.error('Erro ao reagendar notificações:', error)
-        showAlert('Erro', 'Não foi possível reparar as notificações.', [
+        showAlert(t('settings.error'), t('settings.repairNotificationsError'), [
           { text: 'OK', onPress: () => {} },
         ])
       }
@@ -165,7 +182,7 @@ const openBatterySettings = async () => {
   />
 
   <Text style={styles.helpText}>
-    Em alguns telemóveis Android, o sistema pode atrasar lembretes quando a poupança de bateria está ativa. Para maior fiabilidade, usa “Melhorar notificações” e define a bateria como “Sem restrições”.
+    {t('settings.androidBatteryHelp')}
   </Text>
 </View>
           <Text style={styles.footer}>2026 © VitaStreak</Text>
