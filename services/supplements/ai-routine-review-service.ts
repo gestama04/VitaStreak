@@ -1,5 +1,6 @@
 import { supabase } from '../../supabase-config'
 import { Supplement } from '../../types/supplements/supplement'
+import { i18n, t } from '@/i18n'
 
 export type AIRoutineReview = {
   summary: string
@@ -33,8 +34,9 @@ export async function reviewSupplementRoutine(
       'review-supplement-routine',
       {
         body: {
-          supplements: compactSupplements,
-        },
+  supplements: compactSupplements,
+  language: i18n.locale === 'pt' ? 'pt' : 'en',
+},
       }
     )
 
@@ -50,7 +52,7 @@ export async function reviewSupplementRoutine(
       professionalQuestions: data.professionalQuestions ?? [],
       disclaimer:
         data.disclaimer ??
-        'Informação geral. Não substitui aconselhamento médico.',
+        t('addSupplement.medicalDisclaimer')
     }
   } catch (error) {
     console.error('Erro IA rotina:', error)
@@ -62,7 +64,7 @@ export async function reviewSupplementRoutine(
       timingNotes: [],
       professionalQuestions: [],
       disclaimer:
-        'Informação geral. Não substitui aconselhamento médico.',
+        t('addSupplement.medicalDisclaimer')
     }
   }
 }

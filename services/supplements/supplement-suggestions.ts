@@ -1,4 +1,5 @@
 import { Supplement } from '../../types/supplements/supplement'
+import { t } from '@/i18n'
 
 export type SupplementSuggestion = {
   reminderTime: string
@@ -18,51 +19,51 @@ export function getSupplementSuggestion(input: {
   const unit = input.dosageUnit
 
   let reminderTime = '09:00'
-  let note = 'Sugestão: escolhe uma hora fácil de repetir todos os dias para criares hábito.'
+  let note = t('supplementSuggestions.defaultNote')
   let caution: string | undefined
 
   const has = (...words: string[]) => words.some((word) => text.includes(word))
 
   if (has('vitamina d', 'd3', 'k2', 'mk-7')) {
     reminderTime = '09:00'
-    note = 'Sugestão: vitamina D/K é muitas vezes tomada com uma refeição.'
+    note = t('supplementSuggestions.vitaminDNote')
   }
 
   if (has('magnésio', 'magnesium', 'bisglicinato', 'glycinate')) {
     reminderTime = '21:00'
-    note = 'Sugestão: o magnésio é muitas vezes tomado ao fim do dia.'
+    note = t('supplementSuggestions.magnesiumNote')
   }
 
   if (has('omega', 'ómega', 'fish oil', 'epa', 'dha')) {
     reminderTime = '13:00'
-    note = 'Sugestão: ómega 3 é muitas vezes tomado com uma refeição.'
+    note = t('supplementSuggestions.omega3Note')
   }
 
   if (has('creatina', 'creatine')) {
     reminderTime = '10:00'
-    note = 'Sugestão: para creatina, o mais importante costuma ser manter consistência diária.'
+    note = t('supplementSuggestions.creatineNote')
   }
 
   if (has('probiótico', 'probiotic')) {
     reminderTime = '08:00'
-    note = 'Sugestão: probióticos são muitas vezes tomados numa rotina matinal.'
+    note = t('supplementSuggestions.probioticNote')
   }
 
   if (has('ferro', 'iron')) {
     reminderTime = '08:00'
-    note = 'Sugestão: ferro pode merecer atenção ao horário e interações com outros suplementos.'
-    caution = 'Atenção: confirma as instruções do rótulo ou de um profissional de saúde, especialmente se também tomares cálcio, magnésio ou medicação.'
+    note = t('supplementSuggestions.ironNote')
+    caution = t('supplementSuggestions.ironCaution')
   }
 
   if (has('zinco', 'zinc')) {
     reminderTime = '13:00'
-    note = 'Sugestão: zinco é muitas vezes tomado com comida para melhor tolerância.'
+    note = t('supplementSuggestions.zincNote')
   }
 
   if (has('melatonina', 'melatonin')) {
     reminderTime = '22:00'
-    note = 'Sugestão: melatonina é normalmente associada ao período antes de dormir.'
-    caution = 'Atenção: confirma se é adequada para ti, especialmente se tomares medicação ou tiveres condições de saúde.'
+    note = t('supplementSuggestions.melatoninNote')
+    caution = t('supplementSuggestions.melatoninCaution')
   }
 
   if (
@@ -71,7 +72,7 @@ export function getSupplementSuggestion(input: {
     typeof amount === 'number' &&
     amount >= 4000
   ) {
-    caution = 'Atenção: esta dose parece elevada. Confirma o rótulo e valida com um profissional de saúde se necessário.'
+    caution = t('supplementSuggestions.highDoseCaution')
   }
 
   if (
@@ -80,7 +81,7 @@ export function getSupplementSuggestion(input: {
     typeof amount === 'number' &&
     amount >= 400
   ) {
-    caution = 'Atenção: confirma se esta quantidade corresponde ao magnésio elementar e se é adequada para ti.'
+    caution = t('supplementSuggestions.magnesiumDoseCaution')
   }
 
   return {

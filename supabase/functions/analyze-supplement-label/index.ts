@@ -1,4 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import {
+  GoogleGenerativeAI,
+  type Part,
+} from '@google/generative-ai'
+
+type GeminiContentPart = string | Part
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +29,7 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-async function generateWithFallback(parts: any[]) {
+async function generateWithFallback(parts: GeminiContentPart[]) {
   let lastError: unknown = null
 
   for (const modelName of GEMINI_MODELS) {
@@ -90,14 +95,23 @@ function normalizeUnit(unit: unknown) {
 
   return allowedUnits.includes(normalized) ? normalized : null
 }
-
+type ParsedIngredient = {
+  name?: unknown
+  amount?: unknown
+  unit?: unknown
+}
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { imageBase64 } = await req.json()
+    const { imageBase64, language } = await req.json()
+
+const responseLanguage =
+  language === 'pt'
+    ? 'Portuguese from Portugal'
+    : 'English'
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       return jsonResponse({ error: 'Imagem em falta' }, 400)
@@ -158,7 +172,9 @@ Regras:
 - benefits deve listar benefícios gerais conhecidos dos ingredientes, máximo 5.
 - cautions deve listar avisos gerais, máximo 5.
 - Não dizer que trata doenças.
-- Usa português de Portugal quando aplicável.
+- Write all user-facing text in ${responseLanguage}.
+- Keep all JSON property names exactly as specified.
+- Do not translate measurement units or JSON property names.
 `
 
     const result = await generateWithFallback([
@@ -190,14 +206,17 @@ Regras:
         : null
 
     const activeIngredients = Array.isArray(parsed.activeIngredients)
-      ? parsed.activeIngredients
-          .map((ingredient: any) => ({
-            name: typeof ingredient.name === 'string' ? ingredient.name : '',
-            amount: toNumberOrNull(ingredient.amount),
-            unit: normalizeUnit(ingredient.unit),
-          }))
-          .filter((ingredient: any) => ingredient.name.trim().length > 0)
-      : []
+  ? (parsed.activeIngredients as ParsedIngredient[])
+      .map((ingredient) => ({
+        name:
+          typeof ingredient.name === 'string'
+            ? ingredient.name
+            : '',
+        amount: toNumberOrNull(ingredient.amount),
+        unit: normalizeUnit(ingredient.unit),
+      }))
+      .filter((ingredient) => ingredient.name.trim().length > 0)
+  : []
 
     return jsonResponse({
       name: parsed.name ?? null,

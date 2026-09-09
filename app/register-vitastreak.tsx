@@ -221,7 +221,7 @@ export default function RegisterScreen() {
   display="default"
   minimumDate={MIN_BIRTH_DATE}
   maximumDate={new Date()}
-  onChange={(event, selectedDate) => {
+  onValueChange={(event, selectedDate) => {
     setShowDatePicker(false)
     if (selectedDate) setBirthDate(selectedDate)
   }}

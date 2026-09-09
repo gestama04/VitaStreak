@@ -23,6 +23,7 @@ import { analyzeSupplementLabel } from '../services/supplements/gemini-supplemen
 import { getSupplementSuggestion } from '../services/supplements/supplement-suggestions'
 import useCustomAlert from '../hooks/useCustomAlert'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { t } from '@/i18n'
 
 function cleanInstructions(text: string | null) {
   if (!text) return ''
@@ -129,7 +130,7 @@ export default function AddSupplementScreen() {
 }
 
       showAlert(
-        'Sugestão de rotina',
+        t('addSupplement.routineSuggestion'),
         suggestion.caution
           ? `${suggestion.note}\n\n${suggestion.caution}`
           : suggestion.note,
@@ -138,14 +139,14 @@ export default function AddSupplementScreen() {
 
       if (analysis.confidence < 0.7) {
         showAlert(
-          'Confirmação recomendada',
-          'A IA não teve muita confiança. Confirma os campos manualmente.',
+          t('addSupplement.confirmationRecommended'),
+          t('addSupplement.lowConfidence'),
           [{ text: 'OK', onPress: () => {} }]
         )
       }
     } catch (error) {
       console.error('Erro ao analisar imagem:', error)
-      showAlert('Erro', 'Não foi possível analisar a imagem.', [
+      showAlert(t('addSupplement.error'), t('addSupplement.analysisError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -157,14 +158,14 @@ export default function AddSupplementScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
 
     if (status !== 'granted') {
-      showAlert('Permissão necessária', 'É necessário acesso à galeria.', [
+      showAlert(t('addSupplement.permissionRequired'), t('addSupplement.galleryPermission'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -179,7 +180,7 @@ export default function AddSupplementScreen() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
 
     if (status !== 'granted') {
-      showAlert('Permissão necessária', 'É necessário acesso à câmara.', [
+      showAlert(t('addSupplement.permissionRequired'), t('addSupplement.cameraPermission'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -237,7 +238,7 @@ const toggleDay = (day: number) => {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      showAlert('Nome em falta', 'Insere pelo menos o nome do suplemento.', [
+      showAlert(t('addSupplement.missingName'), t('addSupplement.missingNameMessage'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -245,14 +246,14 @@ const toggleDay = (day: number) => {
   const cleanedReminderTimes = reminderTimes.filter(Boolean)
 
 if (cleanedReminderTimes.length === 0) {
-  showAlert('Hora em falta', 'Escolhe pelo menos uma hora de lembrete.', [
+  showAlert(t('addSupplement.missingTime'), t('addSupplement.missingTimeMessage'), [
     { text: 'OK', onPress: () => {} },
   ])
   return
 }
 
 if (frequencyType === 'specific_days' && daysOfWeek.length === 0) {
-  showAlert('Dias em falta', 'Escolhe pelo menos um dia da semana.', [
+  showAlert(t('addSupplement.missingDays'), t('addSupplement.missingDaysMessage'), [
     { text: 'OK', onPress: () => {} },
   ])
   return
@@ -299,7 +300,7 @@ if (router.canGoBack()) {
 }
     } catch (error) {
       console.error('Erro ao guardar suplemento:', error)
-      showAlert('Erro', 'Não foi possível guardar o suplemento.', [
+      showAlert(t('addSupplement.error'), t('addSupplement.saveError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -331,9 +332,9 @@ if (router.canGoBack()) {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Novo Suplemento</Text>
+              <Text style={styles.title}>{t('addSupplement.title')}</Text>
               <Text style={styles.subtitle}>
-                Usa IA para ler o rótulo ou preenche manualmente.
+                {t('addSupplement.subtitle')}
               </Text>
             </View>
           </View>
@@ -346,9 +347,9 @@ if (router.canGoBack()) {
                 color="#c4b5fd"
               />
               <View style={{ flex: 1 }}>
-                <Text style={styles.aiTitle}>Análise inteligente</Text>
+                <Text style={styles.aiTitle}>{t('addSupplement.smartAnalysis')}</Text>
                 <Text style={styles.aiSubtitle}>
-                  Tira uma foto ao rótulo e a IA preenche os dados.
+                  {t('addSupplement.smartAnalysisDescription')}
                 </Text>
               </View>
             </View>
@@ -363,7 +364,7 @@ if (router.canGoBack()) {
               ) : (
                 <>
                   <Ionicons name="camera-outline" size={22} color="white" />
-                  <Text style={styles.aiButtonText}>Tirar foto e analisar</Text>
+                  <Text style={styles.aiButtonText}>{t('addSupplement.takePhotoAndAnalyze')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -374,7 +375,7 @@ if (router.canGoBack()) {
               disabled={analyzing}
             >
               <Ionicons name="image-outline" size={22} color="white" />
-              <Text style={styles.secondaryButtonText}>Escolher da galeria</Text>
+              <Text style={styles.secondaryButtonText}>{t('addSupplement.chooseFromGallery')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -388,14 +389,14 @@ if (router.canGoBack()) {
           {confidence !== null ? (
             <View style={styles.confidenceBox}>
               <Text style={styles.confidenceText}>
-                Confiança IA: {Math.round(confidence * 100)}%
+                {t('addSupplement.aiConfidence', { value: Math.round(confidence * 100) })}
               </Text>
             </View>
           ) : null}
 
           {activeIngredients.length > 0 ? (
             <View style={styles.ingredientsBox}>
-              <Text style={styles.ingredientsTitle}>Ingredientes detetados</Text>
+              <Text style={styles.ingredientsTitle}>{t('addSupplement.detectedIngredients')}</Text>
 
               {activeIngredients.map((ingredient, index) => (
                 <Text
@@ -411,7 +412,7 @@ if (router.canGoBack()) {
           ) : null}
 {aiInsights && (
   <View style={styles.ingredientsBox}>
-    <Text style={styles.ingredientsTitle}>Resumo IA</Text>
+    <Text style={styles.ingredientsTitle}>{t('addSupplement.aiSummary')}</Text>
 
     {aiInsights.summary ? (
       <Text style={styles.ingredientText}>{aiInsights.summary}</Text>
@@ -419,7 +420,7 @@ if (router.canGoBack()) {
 
     {aiInsights.benefits?.length > 0 && (
       <>
-        <Text style={styles.ingredientsTitle}>Benefícios</Text>
+        <Text style={styles.ingredientsTitle}>{t('addSupplement.benefits')}</Text>
         {aiInsights.benefits.map((b: string, i: number) => (
           <Text key={i} style={styles.ingredientText}>• {b}</Text>
         ))}
@@ -428,7 +429,7 @@ if (router.canGoBack()) {
 
     {aiInsights.cautions?.length > 0 && (
       <>
-        <Text style={styles.ingredientsTitle}>Atenção</Text>
+        <Text style={styles.ingredientsTitle}>{t('addSupplement.caution')}</Text>
         {aiInsights.cautions.map((c: string, i: number) => (
           <Text key={i} style={styles.ingredientText}>• {c}</Text>
         ))}
@@ -436,16 +437,16 @@ if (router.canGoBack()) {
     )}
 
     <Text style={{ color: '#94a3b8', marginTop: 10, fontSize: 12 }}>
-      Informação geral. Não substitui aconselhamento médico.
+      {t('addSupplement.medicalDisclaimer')}
     </Text>
   </View>
 )}
           <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>Dados do suplemento</Text>
+            <Text style={styles.sectionTitle}>{t('addSupplement.supplementData')}</Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Nome"
+              placeholder={t('addSupplement.name')}
               placeholderTextColor="#94a3b8"
               value={name}
               onChangeText={setName}
@@ -453,7 +454,7 @@ if (router.canGoBack()) {
 
             <TextInput
               style={styles.input}
-              placeholder="Marca"
+              placeholder={t('addSupplement.brand')}
               placeholderTextColor="#94a3b8"
               value={brand}
               onChangeText={setBrand}
@@ -461,7 +462,7 @@ if (router.canGoBack()) {
 
             <TextInput
               style={styles.input}
-              placeholder="Ingrediente principal"
+              placeholder={t('addSupplement.mainIngredient')}
               placeholderTextColor="#94a3b8"
               value={mainIngredient}
               onChangeText={setMainIngredient}
@@ -470,7 +471,7 @@ if (router.canGoBack()) {
             <View style={styles.row}>
               <TextInput
                 style={[styles.input, styles.rowInput]}
-                placeholder="Dosagem"
+                placeholder={t('addSupplement.dosage')}
                 placeholderTextColor="#94a3b8"
                 value={dosageAmount}
                 onChangeText={setDosageAmount}
@@ -479,7 +480,7 @@ if (router.canGoBack()) {
 
               <TextInput
                 style={[styles.input, styles.rowInput]}
-                placeholder="Unidade"
+                placeholder={t('addSupplement.unit')}
                 placeholderTextColor="#94a3b8"
                 value={dosageUnit}
                 onChangeText={setDosageUnit}
@@ -488,21 +489,21 @@ if (router.canGoBack()) {
 
             <TextInput
               style={styles.input}
-              placeholder="Tamanho da toma"
+              placeholder={t('addSupplement.servingSize')}
               placeholderTextColor="#94a3b8"
               value={servingSize}
               onChangeText={setServingSize}
             />
 
             <View style={styles.routineBox}>
-  <Text style={styles.routineTitle}>Rotina</Text>
+  <Text style={styles.routineTitle}>{t('addSupplement.routine')}</Text>
 
   <View style={styles.optionGrid}>
     {[
-  { label: 'Todos os dias', value: 'daily' },
-  { label: 'Dias específicos', value: 'specific_days' },
-  { label: 'Dia sim / dia não', value: 'every_other_day' },
-  { label: 'Personalizado', value: 'custom_interval' },
+  { label: t('addSupplement.everyDay'), value: 'daily' },
+  { label: t('addSupplement.specificDays'), value: 'specific_days' },
+  { label: t('addSupplement.everyOtherDay'), value: 'every_other_day' },
+  { label: t('addSupplement.custom'), value: 'custom_interval' },
 ].map((option) => (
       <TouchableOpacity
         key={option.value}
@@ -527,13 +528,13 @@ if (router.canGoBack()) {
   {frequencyType === 'specific_days' ? (
     <View style={styles.daysRow}>
       {[
-        { label: 'D', value: 0 },
-        { label: 'S', value: 1 },
-        { label: 'T', value: 2 },
-        { label: 'Q', value: 3 },
-        { label: 'Q', value: 4 },
-        { label: 'S', value: 5 },
-        { label: 'S', value: 6 },
+        { label: t('addSupplement.sundayShort'), value: 0 },
+        { label: t('addSupplement.mondayShort'), value: 1 },
+        { label: t('addSupplement.tuesdayShort'), value: 2 },
+        { label: t('addSupplement.wednesdayShort'), value: 3 },
+        { label: t('addSupplement.thursdayShort'), value: 4 },
+        { label: t('addSupplement.fridayShort'), value: 5 },
+        { label: t('addSupplement.saturdayShort'), value: 6 },
       ].map((day) => (
         <TouchableOpacity
           key={day.value}
@@ -559,7 +560,7 @@ if (router.canGoBack()) {
   {frequencyType === 'custom_interval' ? (
     <TextInput
       style={styles.input}
-      placeholder="Intervalo em dias. Ex: 3"
+      placeholder={t('addSupplement.intervalDays')}
       placeholderTextColor="#94a3b8"
       value={intervalDays}
       onChangeText={setIntervalDays}
@@ -568,16 +569,16 @@ if (router.canGoBack()) {
   ) : null}
 
   <View style={styles.timesHeader}>
-    <Text style={styles.timesTitle}>Horas das tomas</Text>
+    <Text style={styles.timesTitle}>{t('addSupplement.doseTimes')}</Text>
 
     <TouchableOpacity style={styles.smallAddButton} onPress={addReminderTime}>
       <Ionicons name="add" size={18} color="white" />
-      <Text style={styles.smallAddButtonText}>Adicionar</Text>
+      <Text style={styles.smallAddButtonText}>{t('addSupplement.add')}</Text>
     </TouchableOpacity>
   </View>
 
   {reminderTimes.length === 0 ? (
-    <Text style={styles.emptyTimesText}>Adiciona pelo menos uma hora.</Text>
+    <Text style={styles.emptyTimesText}>{t('addSupplement.addAtLeastOneTime')}</Text>
   ) : null}
 
   {reminderTimes.map((time, index) => (
@@ -591,7 +592,7 @@ if (router.canGoBack()) {
       >
         <Ionicons name="time-outline" size={20} color="#94a3b8" />
         <Text style={[styles.timeButtonText, !time && styles.timePlaceholder]}>
-          {time || `Escolher hora ${index + 1}`}
+          {time || t('addSupplement.chooseTime', { number: index + 1 })}
         </Text>
       </TouchableOpacity>
 
@@ -620,14 +621,14 @@ if (router.canGoBack()) {
       mode="time"
       display="default"
       is24Hour
-      onChange={handleTimeChange}
+      onValueChange={handleTimeChange}
     />
   ) : null}
 </View>
 
             <TextInput
               style={styles.input}
-              placeholder="Quantidade na embalagem"
+              placeholder={t('addSupplement.containerQuantity')}
               placeholderTextColor="#94a3b8"
               value={containerQuantity}
               onChangeText={setContainerQuantity}
@@ -636,7 +637,7 @@ if (router.canGoBack()) {
 
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Instruções do rótulo"
+              placeholder={t('addSupplement.labelInstructions')}
               placeholderTextColor="#94a3b8"
               value={instructions}
               onChangeText={setInstructions}
@@ -651,7 +652,7 @@ if (router.canGoBack()) {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.saveButtonText}>Guardar suplemento</Text>
+                <Text style={styles.saveButtonText}>{t('addSupplement.save')}</Text>
               )}
             </TouchableOpacity>
           </View>

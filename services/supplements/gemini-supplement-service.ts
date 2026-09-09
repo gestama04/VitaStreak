@@ -1,5 +1,6 @@
 import { supabase } from '../../supabase-config'
 import { SupplementAnalysisResult } from '../../types/supplements/supplement'
+import { i18n } from '@/i18n'
 
 export async function analyzeSupplementLabel(
   imageBase64: string
@@ -8,7 +9,10 @@ export async function analyzeSupplementLabel(
     const { data, error } = await supabase.functions.invoke(
       'analyze-supplement-label',
       {
-        body: { imageBase64 },
+        body: {
+  imageBase64,
+  language: i18n.locale === 'pt' ? 'pt' : 'en',
+},
       }
     )
 

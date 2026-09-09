@@ -257,7 +257,7 @@ setReminderTimes((current) =>
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -684,7 +684,7 @@ is_active: true,
       mode="time"
       display="default"
       is24Hour
-      onChange={handleTimeChange}
+      onValueChange={handleTimeChange}
     />
   ) : null}
 </View>
