@@ -18,6 +18,7 @@ import {
   reviewSupplementRoutine,
 } from '../services/supplements/ai-routine-review-service'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 export default function AIRoutineReviewScreen() {
   const router = useRouter()
@@ -34,8 +35,8 @@ export default function AIRoutineReviewScreen() {
 
       if (supplements.length === 0) {
         showAlert(
-          'Sem suplementos',
-          'Adiciona suplementos antes de gerar uma análise da rotina.',
+          t('aiRoutineReview.noSupplementsTitle'),
+          t('aiRoutineReview.noSupplementsMessage'),
           [{ text: 'OK', onPress: () => {} }]
         )
         return
@@ -45,9 +46,11 @@ export default function AIRoutineReviewScreen() {
       setReview(result)
     } catch (error) {
       console.error('Erro na análise IA da rotina:', error)
-      showAlert('Erro', 'Não foi possível gerar a análise IA.', [
-        { text: 'OK', onPress: () => {} },
-      ])
+      showAlert(
+        t('aiRoutineReview.error'),
+        t('aiRoutineReview.analysisError'),
+        [{ text: 'OK', onPress: () => {} }]
+      )
     } finally {
       setLoading(false)
     }
@@ -64,28 +67,36 @@ export default function AIRoutineReviewScreen() {
       >
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
               <Ionicons name="arrow-back" size={22} color="white" />
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Análise IA</Text>
+              <Text style={styles.title}>{t('aiRoutineReview.title')}</Text>
               <Text style={styles.subtitle}>
-                Um resumo geral da tua rotina de suplementos.
+                {t('aiRoutineReview.subtitle')}
               </Text>
             </View>
           </View>
 
           <View style={styles.heroCard}>
-            <MaterialCommunityIcons name="robot-happy-outline" size={38} color="#c4b5fd" />
-            <Text style={styles.heroTitle}>Revisão inteligente da rotina</Text>
+            <MaterialCommunityIcons
+              name="robot-happy-outline"
+              size={38}
+              color="#c4b5fd"
+            />
+            <Text style={styles.heroTitle}>
+              {t('aiRoutineReview.heroTitle')}
+            </Text>
             <Text style={styles.heroText}>
-              A IA analisa os suplementos guardados, horários, ingredientes e possíveis
-              pontos a confirmar.
+              {t('aiRoutineReview.heroText')}
             </Text>
 
             <Text style={styles.warningText}>
-              Informação geral. Não substitui aconselhamento médico.
+              {t('aiRoutineReview.disclaimer')}
             </Text>
 
             <TouchableOpacity
@@ -97,8 +108,14 @@ export default function AIRoutineReviewScreen() {
                 <ActivityIndicator color="white" />
               ) : (
                 <>
-                  <Ionicons name="sparkles-outline" size={22} color="white" />
-                  <Text style={styles.analyzeButtonText}>Analisar rotina</Text>
+                  <Ionicons
+                    name="sparkles-outline"
+                    size={22}
+                    color="white"
+                  />
+                  <Text style={styles.analyzeButtonText}>
+                    {t('aiRoutineReview.analyze')}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -106,21 +123,36 @@ export default function AIRoutineReviewScreen() {
 
           {review ? (
             <>
-              <Section title="Resumo" items={[review.summary]} />
-
-              <Section title="Pontos positivos" items={review.positives} />
-
-              <Section title="A confirmar" items={review.pointsToCheck} danger />
-
-              <Section title="Horários e rotina" items={review.timingNotes} />
+              <Section
+                title={t('aiRoutineReview.summary')}
+                items={[review.summary]}
+              />
 
               <Section
-                title="Perguntas para o profissional de saúde"
+                title={t('aiRoutineReview.positives')}
+                items={review.positives}
+              />
+
+              <Section
+                title={t('aiRoutineReview.pointsToCheck')}
+                items={review.pointsToCheck}
+                danger
+              />
+
+              <Section
+                title={t('aiRoutineReview.timing')}
+                items={review.timingNotes}
+              />
+
+              <Section
+                title={t('aiRoutineReview.professionalQuestions')}
                 items={review.professionalQuestions}
               />
 
               <View style={styles.disclaimerBox}>
-                <Text style={styles.disclaimerText}>{review.disclaimer}</Text>
+                <Text style={styles.disclaimerText}>
+                  {review.disclaimer}
+                </Text>
               </View>
             </>
           ) : null}
@@ -148,7 +180,10 @@ function Section({
       <Text style={styles.sectionTitle}>{title}</Text>
 
       {items.map((item, index) => (
-        <Text key={index} style={[styles.sectionText, danger && styles.dangerText]}>
+        <Text
+          key={index}
+          style={[styles.sectionText, danger && styles.dangerText]}
+        >
           • {item}
         </Text>
       ))}

@@ -462,6 +462,23 @@ const en = {
     changesTitle: 'Changes',
     changesText: 'These terms may be updated in the future. Continued use of the app means that you accept the latest version.',
   },
+  aiRoutineReview: {
+    noSupplementsTitle: 'No supplements',
+    noSupplementsMessage: 'Add supplements before generating a routine analysis.',
+    error: 'Error',
+    analysisError: 'The AI analysis could not be generated.',
+    title: 'AI analysis',
+    subtitle: 'A general overview of your supplement routine.',
+    heroTitle: 'Smart routine review',
+    heroText: 'AI reviews your saved supplements, schedules, ingredients, and possible points to check.',
+    disclaimer: 'General information only. This does not replace medical advice.',
+    analyze: 'Analyze routine',
+    summary: 'Summary',
+    positives: 'Positive points',
+    pointsToCheck: 'Points to check',
+    timing: 'Timing and routine',
+    professionalQuestions: 'Questions for your healthcare professional',
+  },
 } as const
 
 export default en

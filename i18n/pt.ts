@@ -462,6 +462,23 @@ const pt = {
     changesTitle: 'Alterações',
     changesText: 'Estes termos podem ser atualizados no futuro. A utilização contínua da app significa aceitação da versão mais recente.',
   },
+  aiRoutineReview: {
+    noSupplementsTitle: 'Sem suplementos',
+    noSupplementsMessage: 'Adiciona suplementos antes de gerar uma análise da rotina.',
+    error: 'Erro',
+    analysisError: 'Não foi possível gerar a análise por IA.',
+    title: 'Análise por IA',
+    subtitle: 'Um resumo geral da tua rotina de suplementos.',
+    heroTitle: 'Revisão inteligente da rotina',
+    heroText: 'A IA analisa os suplementos guardados, horários, ingredientes e possíveis pontos a confirmar.',
+    disclaimer: 'Informação geral. Não substitui aconselhamento médico.',
+    analyze: 'Analisar rotina',
+    summary: 'Resumo',
+    positives: 'Pontos positivos',
+    pointsToCheck: 'A confirmar',
+    timing: 'Horários e rotina',
+    professionalQuestions: 'Perguntas para o profissional de saúde',
+  },
 } as const
 
 export default pt
