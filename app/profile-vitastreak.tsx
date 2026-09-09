@@ -24,7 +24,7 @@ import useCustomAlert from '../hooks/useCustomAlert'
 import { t } from '@/i18n'
 import {
   getSupplements,
-  getTodaySupplements,
+  getTodayDoseSummary,
   getSupplementStreak,
 } from '../services/supplements/supplement-service'
 
@@ -40,7 +40,7 @@ export default function ProfileScreen() {
   const [birthDate, setBirthDate] = useState('')
   const [totalSupplements, setTotalSupplements] = useState(0)
   const [todayCompleted, setTodayCompleted] = useState(0)
-  const [todayTotal, setTodayTotal] = useState(0)
+  const [todayPending, setTodayPending] = useState(0)
   const [streak, setStreak] = useState(0)
 
   useEffect(() => {
@@ -74,15 +74,15 @@ setDisplayName(
 
   const loadStats = async () => {
     try {
-      const [supplements, today, currentStreak] = await Promise.all([
+      const [supplements, todaySummary, currentStreak] = await Promise.all([
         getSupplements(),
-        getTodaySupplements(),
+        getTodayDoseSummary(),
         getSupplementStreak(),
       ])
 
       setTotalSupplements(supplements.length)
-      setTodayTotal(today.length)
-      setTodayCompleted(today.filter((item) => item.taken_today).length)
+      setTodayCompleted(todaySummary.completed)
+      setTodayPending(todaySummary.pending)
       setStreak(currentStreak)
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
@@ -262,9 +262,30 @@ const sendPasswordReset = async () => {
           </View>
 
           <View style={styles.statsGrid}>
-            <StatCard label={t('profile.streak')} value={`🔥 ${streak}`} />
-            <StatCard label={t('profile.today')} value={`${todayCompleted}/${todayTotal}`} />
-            <StatCard label={t('profile.supplements')} value={`${totalSupplements}`} />
+            <View style={styles.statsTopRow}>
+              <StatCard label={t('profile.streak')} value={`🔥 ${streak}`} />
+              <StatCard label={t('profile.supplements')} value={`${totalSupplements}`} />
+            </View>
+
+            <View style={styles.todayStatCard}>
+              <Text style={styles.todayStatValue}>
+                {todayCompleted === 0 && todayPending === 0
+                  ? t('profile.noDoses')
+                  : t('profile.todaySummary', {
+                      completed: todayCompleted,
+                      completedLabel:
+                        todayCompleted === 1
+                          ? t('profile.doseCompletedSingular')
+                          : t('profile.doseCompletedPlural'),
+                      pending: todayPending,
+                      pendingLabel:
+                        todayPending === 1
+                          ? t('profile.dosePendingSingular')
+                          : t('profile.dosePendingPlural'),
+                    })}
+              </Text>
+              <Text style={styles.statLabel}>{t('profile.today')}</Text>
+            </View>
           </View>
 
           <View style={styles.menuCard}>
@@ -303,7 +324,7 @@ const sendPasswordReset = async () => {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statValue} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.62}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   )
@@ -426,9 +447,30 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statsGrid: {
-    flexDirection: 'row',
     gap: 10,
     marginBottom: 18,
+  },
+  statsTopRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  todayStatCard: {
+    width: '100%',
+    minHeight: 92,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todayStatValue: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   statCard: {
     flex: 1,

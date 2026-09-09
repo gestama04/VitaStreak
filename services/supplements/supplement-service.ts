@@ -200,6 +200,33 @@ export async function getTodaySupplements() {
   .sort((a, b) => a.reminder_time.localeCompare(b.reminder_time)) as TodaySupplement[]
 }
 
+export async function getTodayDoseSummary() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Utilizador não autenticado')
+
+  const today = getDateString()
+
+  const [{ count, error: countError }, activeToday] = await Promise.all([
+    supabase
+      .from('supplement_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('taken_date', today)
+      .eq('status', 'taken'),
+    getTodaySupplements(),
+  ])
+
+  if (countError) throw countError
+
+  return {
+    completed: count ?? 0,
+    pending: activeToday.filter((item) => !item.taken_today).length,
+  }
+}
+
 export async function markSupplementTaken(
   supplementId: string,
   reminderTime: string
@@ -268,13 +295,6 @@ export async function unmarkSupplementTaken(
     .eq('reminder_time', reminderTime)
 
   if (error) throw error
-  const { error: dayStatusError } = await supabase
-  .from('supplement_day_status')
-  .delete()
-  .eq('user_id', user.id)
-  .eq('date', today)
-
-if (dayStatusError) throw dayStatusError
 }
 
 export async function deleteSupplement(supplementId: string) {
@@ -706,14 +726,8 @@ async function refreshTodayDayStatus(userId: string) {
   )
 
   if (!completed) {
-  await supabase
-    .from('supplement_day_status')
-    .delete()
-    .eq('user_id', userId)
-    .eq('date', today)
-
-  return
-}
+    return
+  }
 
   const { error } = await supabase.from('supplement_day_status').upsert(
     {

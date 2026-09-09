@@ -17,6 +17,7 @@ import { useAuth } from '../auth-context'
 import {
   getSupplements,
   getTodaySupplements,
+  getTodayDoseSummary,
   getSupplementStreak,
   markSupplementTaken,
   unmarkSupplementTaken,
@@ -51,6 +52,7 @@ export default function VitaStreakHome() {
   const [loading, setLoading] = useState(true)
   const [totalSupplements, setTotalSupplements] = useState(0)
   const [todayItems, setTodayItems] = useState<TodaySupplement[]>([])
+  const [todayLoggedCompleted, setTodayLoggedCompleted] = useState(0)
   const [streak, setStreak] = useState(0)
   const [confettiKey, setConfettiKey] = useState(0)
   const [freezeBalance, setFreezeBalance] = useState(0)
@@ -65,9 +67,11 @@ export default function VitaStreakHome() {
     currentUser?.user_metadata?.name?.split?.(' ')?.[0] ||
     t('home.defaultName')
 
-  const todayTotal = todayItems.length
-  const todayCompleted = todayItems.filter((item) => item.taken_today).length
-  const todayRemaining = Math.max(todayTotal - todayCompleted, 0)
+  const activeCompleted = todayItems.filter((item) => item.taken_today).length
+  const activePending = Math.max(todayItems.length - activeCompleted, 0)
+  const todayCompleted = todayLoggedCompleted
+  const todayRemaining = activePending
+  const todayTotal = todayCompleted + todayRemaining
   const progress = todayTotal > 0 ? todayCompleted / todayTotal : 0
 
   const safeTime = (t?: string | null) => t ?? ''
@@ -202,15 +206,17 @@ await loadHomeData()
     try {
       setLoading(true)
 
-      const [supplements, today, currentStreak, historyDays] = await Promise.all([
+      const [supplements, today, todaySummary, currentStreak, historyDays] = await Promise.all([
   getSupplements(),
   getTodaySupplements(),
+  getTodayDoseSummary(),
   getSupplementStreak(),
   getSupplementDayStatusDays(7),
 ])
 
 setTotalSupplements(supplements.length)
 setTodayItems(today)
+setTodayLoggedCompleted(todaySummary.completed)
 setStreak(currentStreak)
 setWeekDays(historyDays)
 const freezeData = await syncFreezeRewards(currentStreak)
@@ -227,6 +233,11 @@ setFreezeBalance(freezeData.available)
       loadHomeData()
     }, [])
   )
+
+const refreshTodaySummary = async () => {
+  const summary = await getTodayDoseSummary()
+  setTodayLoggedCompleted(summary.completed)
+}
 
 const refreshStreak = async () => {
   try {
@@ -440,15 +451,17 @@ const canUseFreeze =
             </Text>
           </View>
 
-          {todayTotal > 0 && todayRemaining > 0 ? (
-            <TouchableOpacity style={styles.markAllButton} onPress={markAllToday}>
-              <Text style={styles.markAllText}>{t('home.markAll')}</Text>
-            </TouchableOpacity>
-          ) : (
+          <View style={styles.sectionActions}>
             <TouchableOpacity onPress={() => router.push('/today' as any)}>
               <Text style={styles.sectionAction}>{t('home.viewAll')}</Text>
             </TouchableOpacity>
-          )}
+
+            {todayTotal > 0 && todayRemaining > 0 ? (
+              <TouchableOpacity style={styles.markAllButton} onPress={markAllToday}>
+                <Text style={styles.markAllText}>{t('home.markAll')}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
 
         {loading ? (
@@ -864,11 +877,16 @@ quickActionsTitle: {
     fontSize: 23,
     fontWeight: '900',
   },
+  sectionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   sectionAction: {
   color: '#7dd3fc',
   fontSize: 14,
   fontWeight: '900',
-  marginTop: 5,
+  
 },
   todayStatus: {
     color: '#cbd5e1',
