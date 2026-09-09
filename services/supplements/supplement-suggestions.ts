@@ -1,6 +1,15 @@
 import { Supplement } from '../../types/supplements/supplement'
 import { t } from '@/i18n'
 
+function normalizeSuggestionText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
 export type SupplementSuggestion = {
   reminderTime: string
   daysOfWeek: number[]
@@ -11,10 +20,19 @@ export type SupplementSuggestion = {
 export function getSupplementSuggestion(input: {
   name?: string
   mainIngredient?: string
+  activeIngredients?: Array<{ name?: string | null }> | null
   dosageAmount?: number | null
   dosageUnit?: string | null
 }): SupplementSuggestion {
-  const text = `${input.name ?? ''} ${input.mainIngredient ?? ''}`.toLowerCase()
+  const activeIngredientText = Array.isArray(input.activeIngredients)
+    ? input.activeIngredients
+        .map((ingredient) => ingredient.name ?? '')
+        .join(' ')
+    : ''
+
+  const text = normalizeSuggestionText(
+    `${input.name ?? ''} ${input.mainIngredient ?? ''} ${activeIngredientText}`
+  )
   const amount = input.dosageAmount
   const unit = input.dosageUnit
 
@@ -24,17 +42,17 @@ export function getSupplementSuggestion(input: {
 
   const has = (...words: string[]) => words.some((word) => text.includes(word))
 
-  if (has('vitamina d', 'd3', 'k2', 'mk-7')) {
+  if (has('vitamina d', 'vitamin d', 'd3', 'k2', 'mk 7')) {
     reminderTime = '09:00'
     note = t('supplementSuggestions.vitaminDNote')
   }
 
-  if (has('magnésio', 'magnesium', 'bisglicinato', 'glycinate')) {
+  if (has('magnesio', 'magnesium', 'bisglicinato', 'bisglycinate', 'glycinate')) {
     reminderTime = '21:00'
     note = t('supplementSuggestions.magnesiumNote')
   }
 
-  if (has('omega', 'ómega', 'fish oil', 'epa', 'dha')) {
+  if (has('omega', 'omega 3', 'fish oil', 'epa', 'dha')) {
     reminderTime = '13:00'
     note = t('supplementSuggestions.omega3Note')
   }
@@ -44,7 +62,7 @@ export function getSupplementSuggestion(input: {
     note = t('supplementSuggestions.creatineNote')
   }
 
-  if (has('probiótico', 'probiotic')) {
+  if (has('probiotico', 'probiotic', 'probiotics')) {
     reminderTime = '08:00'
     note = t('supplementSuggestions.probioticNote')
   }
@@ -67,7 +85,7 @@ export function getSupplementSuggestion(input: {
   }
 
   if (
-    has('vitamina d', 'd3') &&
+    has('vitamina d', 'vitamin d', 'd3') &&
     unit === 'IU' &&
     typeof amount === 'number' &&
     amount >= 4000
@@ -76,7 +94,7 @@ export function getSupplementSuggestion(input: {
   }
 
   if (
-    has('magnésio', 'magnesium') &&
+    has('magnesio', 'magnesium') &&
     unit === 'mg' &&
     typeof amount === 'number' &&
     amount >= 400

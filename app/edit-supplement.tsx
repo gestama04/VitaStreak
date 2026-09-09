@@ -213,6 +213,7 @@ setIntervalDays(String(supplement.interval_days ?? 2))
       const suggestion = getSupplementSuggestion({
         name: analysis.name ?? '',
         mainIngredient: analysis.mainIngredient ?? '',
+        activeIngredients: analysis.activeIngredients,
         dosageAmount: analysis.dosageAmount,
         dosageUnit: analysis.dosageUnit,
       })
