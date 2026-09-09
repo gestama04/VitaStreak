@@ -304,6 +304,18 @@ const en = {
     highDoseCaution: 'Caution: this dose appears high. Check the label and confirm it with a healthcare professional if necessary.',
     magnesiumDoseCaution: 'Caution: confirm whether this amount refers to elemental magnesium and whether it is suitable for you.',
   },
+  editSupplement: {
+    loadError: 'The supplement could not be loaded.',
+    updateError: 'The supplement could not be updated.',
+    loading: 'Loading supplement...',
+    title: 'Edit supplement',
+    subtitle: 'Update the details, change the photo, or scan the label again.',
+    newAnalysis: 'New smart analysis',
+    newAnalysisDescription: 'Take a new photo of the label to replace the current details.',
+    takeNewPhoto: 'Take new photo and analyze',
+    chooseNewImage: 'Choose new image',
+    saveChanges: 'Save changes',
+  },
 } as const
 
 export default en

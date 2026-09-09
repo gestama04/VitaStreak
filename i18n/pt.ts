@@ -304,6 +304,18 @@ const pt = {
     highDoseCaution: 'Atenção: esta dose parece elevada. Confirma o rótulo e valida com um profissional de saúde, se necessário.',
     magnesiumDoseCaution: 'Atenção: confirma se esta quantidade corresponde ao magnésio elementar e se é adequada para ti.',
   },
+  editSupplement: {
+    loadError: 'Não foi possível carregar o suplemento.',
+    updateError: 'Não foi possível atualizar o suplemento.',
+    loading: 'A carregar suplemento...',
+    title: 'Editar suplemento',
+    subtitle: 'Atualiza os dados, muda a fotografia ou volta a analisar o rótulo.',
+    newAnalysis: 'Nova análise inteligente',
+    newAnalysisDescription: 'Tira uma nova fotografia ao rótulo para substituir os dados atuais.',
+    takeNewPhoto: 'Tirar nova fotografia e analisar',
+    chooseNewImage: 'Escolher nova imagem',
+    saveChanges: 'Guardar alterações',
+  },
 } as const
 
 export default pt
