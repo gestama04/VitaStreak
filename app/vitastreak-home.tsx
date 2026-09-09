@@ -89,38 +89,33 @@ await loadHomeData()
   }
 }
   const getGreetingData = () => {
-    const hour = new Date().getHours()
+  const hour = new Date().getHours()
 
-    if (hour >= 6 && hour < 12) {
-      return {
-        text: t('home.morning'),
-        emoji: '☀️',
-        sub: t('home.morningSub'),
-      }
-    }
-
-    if (hour >= 12 && hour < 18) {
-      return {
-        text: t('home.afternoon'),
-        emoji: '🌤️',
-        sub: t('home.afternoonSub'),
-      }
-    }
-
-    if (hour >= 18 && hour < 22) {
-      return {
-        text: t('home.evening'),
-        emoji: '🌆',
-        sub: t('home.eveningSub'),
-      }
-    }
-
+  if (hour >= 6 && hour < 12) {
     return {
-      text: t('home.night'),
-      emoji: '🌙',
-      sub: t('home.nightSub'),
+      text: t('home.morning'),
+      emoji: '☀️',
+      sub: t('home.morningSub'),
     }
   }
+
+  if (hour >= 12 && hour < 20) {
+    return {
+      text: t('home.afternoon'),
+      emoji: '🌤️',
+      sub: t('home.afternoonSub'),
+    }
+  }
+
+  return {
+    text: t('home.evening'),
+    emoji: hour >= 20 && hour < 22 ? '🌆' : '🌙',
+    sub:
+      hour >= 20 && hour < 22
+        ? t('home.eveningSub')
+        : t('home.nightSub'),
+  }
+}
 
   const getStreakBadge = (days: number) => {
     if (days <= 0) return '❄️'

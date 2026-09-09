@@ -16,7 +16,7 @@ import { rescheduleAllSupplementNotifications } from '../services/supplements/su
 import { supabase } from '../supabase-config'
 import useCustomAlert from '../hooks/useCustomAlert'
 import { t } from '@/i18n'
-import { useLanguage } from './language-context'
+import { useLanguage } from '@/contexts/language-context'
 import type { LanguagePreference } from '../services/language-service'
 
 function hasErrorContext(error: unknown): error is {

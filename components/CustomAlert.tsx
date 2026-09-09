@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
-import { useTheme } from '../app/theme-context';
+import { useTheme } from '@/contexts/theme-context'
 
 interface CustomAlertProps {
   visible: boolean;

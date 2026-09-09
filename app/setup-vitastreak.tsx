@@ -14,7 +14,7 @@ import {
   Image,
 } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { useTheme } from '../app/theme-context'
+import { useTheme } from '@/contexts/theme-context'
 import useCustomAlert from '../hooks/useCustomAlert'
 import { t } from '@/i18n'
 
