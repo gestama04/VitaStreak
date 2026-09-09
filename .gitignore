@@ -85,3 +85,5 @@ google-services.json
 extrair-textos.cjs
 textos-app.txt
 textos-app-parte-*.txt
+
+supabase/.temp/
