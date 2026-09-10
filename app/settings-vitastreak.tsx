@@ -97,7 +97,14 @@ const addHomeScreenWidget = async () => {
         t('settings.widgetManualMessage'),
         [{ text: 'OK', onPress: () => {} }]
       )
+      return
     }
+
+    showAlert(
+      t('settings.widgetRequestSentTitle'),
+      t('settings.widgetRequestSentMessage'),
+      [{ text: 'OK', onPress: () => {} }]
+    )
   } catch (error) {
     console.error(
       '[VitaStreakWidget] Não foi possível pedir o widget:',

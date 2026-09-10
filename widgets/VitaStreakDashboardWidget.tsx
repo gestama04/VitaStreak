@@ -3,10 +3,24 @@ import {
   FlexWidget,
   TextWidget,
   type WidgetInfo,
+  type ColorProp,
 } from 'react-native-android-widget'
-import type { VitaStreakWidgetData } from './vita-streak-widget-types'
+import type {
+  VitaStreakWidgetData,
+  VitaStreakWidgetDayStatus,
+} from './vita-streak-widget-types'
 
 const HOME_URI = 'vitastreak:///vitastreak-home'
+
+const STATUS_COLORS: Record<
+  VitaStreakWidgetDayStatus,
+  ColorProp
+> = {
+  completed: '#4ADE80',
+  missed: '#F87171',
+  frozen: '#67E8F9',
+  empty: '#334155',
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -14,7 +28,6 @@ function clamp(value: number, min: number, max: number) {
 
 export function VitaStreakDashboardWidget({
   data,
-  widgetInfo,
 }: {
   data: VitaStreakWidgetData
   widgetInfo: WidgetInfo
@@ -23,13 +36,18 @@ export function VitaStreakDashboardWidget({
   const completed = clamp(data.completed, 0, total)
   const progress = total > 0 ? completed / total : 0
   const percent = Math.round(progress * 100)
-  const availableBarWidth = Math.max(widgetInfo.width - 52, 120)
-  const completedBarWidth = Math.max(
-    progress > 0 ? 6 : 0,
-    Math.round(availableBarWidth * progress)
-  )
-  const remainingBarWidth = Math.max(availableBarWidth - completedBarWidth, 0)
+  const completedWeight = Math.max(percent, 0)
+  const remainingWeight = Math.max(100 - percent, 0)
   const isPortuguese = data.language === 'pt'
+
+  const streakText =
+    data.streak === 1
+      ? isPortuguese
+        ? '1 dia seguido'
+        : '1 day in a row'
+      : isPortuguese
+        ? data.streak + ' dias seguidos'
+        : data.streak + ' days in a row'
 
   const statusText =
     total === 0
@@ -66,7 +84,7 @@ export function VitaStreakDashboardWidget({
         borderRadius: 24,
         borderWidth: 1,
         borderColor: '#334155',
-        padding: 18,
+        padding: 16,
       }}
     >
       <FlexWidget
@@ -77,16 +95,69 @@ export function VitaStreakDashboardWidget({
           alignItems: 'center',
         }}
       >
-        <TextWidget
-          text="VitaStreak"
-          maxLines={1}
-          style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '900' }}
-        />
-        <TextWidget
-          text={'🔥 ' + data.streak}
-          maxLines={1}
-          style={{ color: '#FF5A4F', fontSize: 18, fontWeight: '900' }}
-        />
+        <FlexWidget style={{ flexDirection: 'column' }}>
+          <TextWidget
+            text={(data.streak > 0 ? '🔥 ' : '❄️ ') + (isPortuguese ? 'STREAK ATUAL' : 'CURRENT STREAK')}
+            maxLines={1}
+            style={{ color: '#F8FAFC', fontSize: 13, fontWeight: '900' }}
+          />
+          <TextWidget
+            text={streakText}
+            maxLines={1}
+            style={{ color: '#CBD5E1', fontSize: 12, fontWeight: '700', marginTop: 3 }}
+          />
+        </FlexWidget>
+
+        <FlexWidget
+          style={{
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+          }}
+        >
+          <TextWidget
+            text={percent + '%'}
+            maxLines={1}
+            style={{ color: percent === 100 ? '#4ADE80' : '#7DD3FC', fontSize: 20, fontWeight: '900' }}
+          />
+          <TextWidget
+            text={statusText}
+            maxLines={1}
+            truncate="END"
+            style={{ color: '#94A3B8', fontSize: 10, fontWeight: '700', marginTop: 2 }}
+          />
+        </FlexWidget>
+      </FlexWidget>
+
+      <FlexWidget
+        style={{
+          width: 'match_parent',
+          height: 7,
+          flexDirection: 'row',
+          backgroundColor: '#1E293B',
+          borderRadius: 4,
+          overflow: 'hidden',
+          marginTop: 9,
+          marginBottom: 9,
+        }}
+      >
+        {completedWeight > 0 ? (
+          <FlexWidget
+            style={{
+              flex: completedWeight,
+              height: 7,
+              backgroundColor: percent === 100 ? '#4ADE80' : '#7DD3FC',
+            }}
+          />
+        ) : null}
+        {remainingWeight > 0 ? (
+          <FlexWidget
+            style={{
+              flex: remainingWeight,
+              height: 7,
+              backgroundColor: '#1E293B',
+            }}
+          />
+        ) : null}
       </FlexWidget>
 
       <FlexWidget
@@ -97,53 +168,32 @@ export function VitaStreakDashboardWidget({
           alignItems: 'center',
         }}
       >
-        <TextWidget
-          text={isPortuguese ? 'Hoje' : 'Today'}
-          maxLines={1}
-          style={{ color: '#94A3B8', fontSize: 12, fontWeight: '700' }}
-        />
-        <TextWidget
-          text={percent + '%'}
-          maxLines={1}
-          style={{ color: '#7DD3FC', fontSize: 14, fontWeight: '900' }}
-        />
-      </FlexWidget>
-
-      <TextWidget
-        text={statusText}
-        maxLines={1}
-        truncate="END"
-        style={{ color: '#E2E8F0', fontSize: 14, fontWeight: '800' }}
-      />
-
-      <FlexWidget
-        style={{
-          width: 'match_parent',
-          height: 8,
-          flexDirection: 'row',
-          backgroundColor: '#1E293B',
-          borderRadius: 4,
-          overflow: 'hidden',
-        }}
-      >
-        {completedBarWidth > 0 ? (
+        {data.weekDays.map((day, index) => (
           <FlexWidget
+            key={day.label + '-' + index}
             style={{
-              width: completedBarWidth,
-              height: 8,
-              backgroundColor: completed === total && total > 0 ? '#4ADE80' : '#7DD3FC',
+              flex: 1,
+              flexDirection: 'column',
+              alignItems: 'center',
             }}
-          />
-        ) : null}
-        {remainingBarWidth > 0 ? (
-          <FlexWidget
-            style={{
-              width: remainingBarWidth,
-              height: 8,
-              backgroundColor: '#1E293B',
-            }}
-          />
-        ) : null}
+          >
+            <TextWidget
+              text={day.label.toUpperCase()}
+              maxLines={1}
+              style={{ color: '#94A3B8', fontSize: 9, fontWeight: '900' }}
+            />
+            <TextWidget
+              text="●"
+              maxLines={1}
+              style={{
+                color: STATUS_COLORS[day.status],
+                fontSize: 14,
+                fontWeight: '900',
+                marginTop: 2,
+              }}
+            />
+          </FlexWidget>
+        ))}
       </FlexWidget>
     </FlexWidget>
   )

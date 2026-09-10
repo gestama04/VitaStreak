@@ -18,7 +18,6 @@ import { useAuth } from '../auth-context'
 import {
   getSupplements,
   getTodaySupplements,
-  getTodayDoseSummary,
   getSupplementStreak,
   markSupplementTaken,
   unmarkSupplementTaken,
@@ -53,7 +52,6 @@ export default function VitaStreakHome() {
   const [loading, setLoading] = useState(true)
   const [totalSupplements, setTotalSupplements] = useState(0)
   const [todayItems, setTodayItems] = useState<TodaySupplement[]>([])
-  const [todayLoggedCompleted, setTodayLoggedCompleted] = useState(0)
   const [streak, setStreak] = useState(0)
   const [confettiKey, setConfettiKey] = useState(0)
   const [freezeBalance, setFreezeBalance] = useState(0)
@@ -68,12 +66,21 @@ export default function VitaStreakHome() {
     currentUser?.user_metadata?.name?.split?.(' ')?.[0] ||
     t('home.defaultName')
 
-  const activeCompleted = todayItems.filter((item) => item.taken_today).length
-  const activePending = Math.max(todayItems.length - activeCompleted, 0)
-  const todayCompleted = todayLoggedCompleted
-  const todayRemaining = activePending
-  const todayTotal = todayCompleted + todayRemaining
-  const progress = todayTotal > 0 ? todayCompleted / todayTotal : 0
+const todayCompleted = todayItems.filter(
+  (item) => item.taken_today
+).length
+
+const todayTotal = todayItems.length
+
+const todayRemaining = Math.max(
+  todayTotal - todayCompleted,
+  0
+)
+
+const progress =
+  todayTotal > 0
+    ? todayCompleted / todayTotal
+    : 0
 
   const safeTime = (t?: string | null) => t ?? ''
 const freezeYesterday = async () => {
@@ -201,18 +208,20 @@ await loadHomeData()
   const loadHomeData = async () => {
     try {
       setLoading(true)
-
-      const [supplements, today, todaySummary, currentStreak, historyDays] = await Promise.all([
+const [
+  supplements,
+  today,
+  currentStreak,
+  historyDays,
+] = await Promise.all([
   getSupplements(),
   getTodaySupplements(),
-  getTodayDoseSummary(),
   getSupplementStreak(),
   getSupplementDayStatusDays(7),
 ])
 
 setTotalSupplements(supplements.length)
 setTodayItems(today)
-setTodayLoggedCompleted(todaySummary.completed)
 setStreak(currentStreak)
 setWeekDays(historyDays)
 const freezeData = await syncFreezeRewards(currentStreak)
@@ -229,11 +238,6 @@ setFreezeBalance(freezeData.available)
       loadHomeData()
     }, [])
   )
-
-const refreshTodaySummary = async () => {
-  const summary = await getTodayDoseSummary()
-  setTodayLoggedCompleted(summary.completed)
-}
 
 const refreshStreak = async () => {
   try {
@@ -327,6 +331,7 @@ const yesterdayStatus = weekDays.find((day) => day.date === yesterdayString)
 const canUseFreeze =
   freezeBalance > 0 &&
   (!yesterdayStatus || (!yesterdayStatus.completed && !yesterdayStatus.frozen))
+const weekDaysSignature = JSON.stringify(weekDays)
   useEffect(() => {
   if (loading || isRunningInExpoGo()) return
 
@@ -336,11 +341,37 @@ const canUseFreeze =
         '../widgets/vita-streak-widget-service'
       )
 
+      const widgetWeekDays = Array.from({ length: 7 }).map((_, index) => {
+        const date = new Date()
+        date.setDate(date.getDate() - (6 - index))
+
+        const dateString = getLocalDateString(date)
+        const found = weekDays.find((day) => day.date === dateString)
+        const label = date
+          .toLocaleDateString(i18n.locale === 'pt' ? 'pt-PT' : 'en-US', {
+            weekday: 'short',
+          })
+          .replace('.', '')
+          .slice(0, 3)
+
+        return {
+          label,
+          status: !found
+            ? ('empty' as const)
+            : found.completed
+              ? ('completed' as const)
+              : found.frozen
+                ? ('frozen' as const)
+                : ('missed' as const),
+        }
+      })
+
       await updateVitaStreakWidget({
         streak,
-        completed: activeCompleted,
-        total: todayItems.length,
+        completed: todayCompleted,
+        total: todayTotal,
         language: i18n.locale === 'pt' ? 'pt' : 'en',
+        weekDays: widgetWeekDays,
       })
     } catch (error) {
       console.warn(
@@ -354,9 +385,10 @@ const canUseFreeze =
 }, [
   loading,
   streak,
-  activeCompleted,
-  todayItems.length,
+  todayCompleted,
+  todayTotal,
   i18n.locale,
+  weekDaysSignature,
 ])
   return (
     <View style={styles.container}>
