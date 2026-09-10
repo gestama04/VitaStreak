@@ -9,6 +9,7 @@ import {
 const WIDGET_DATA_KEY = 'vitastreakWidgetData'
 const VALID_STATUSES: VitaStreakWidgetDayStatus[] = [
   'completed',
+  'pending',
   'missed',
   'frozen',
   'empty',

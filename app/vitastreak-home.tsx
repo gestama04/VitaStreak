@@ -354,16 +354,20 @@ const weekDaysSignature = JSON.stringify(weekDays)
           .replace('.', '')
           .slice(0, 3)
 
-        return {
-          label,
-          status: !found
-            ? ('empty' as const)
-            : found.completed
-              ? ('completed' as const)
-              : found.frozen
-                ? ('frozen' as const)
-                : ('missed' as const),
-        }
+        const isToday = dateString === getLocalDateString()
+
+return {
+  label,
+  status: !found
+    ? ('empty' as const)
+    : found.completed
+      ? ('completed' as const)
+      : found.frozen
+        ? ('frozen' as const)
+        : isToday
+          ? ('pending' as const)
+          : ('missed' as const),
+}
       })
 
       await updateVitaStreakWidget({
@@ -645,7 +649,16 @@ function WeeklyStatusWidget({ days }: { days: SupplementDayStatus[] }) {
     const completed = !!found?.completed
 const frozen = !!found?.frozen
 
-return { date: dateString, label, hasTakes, completed, frozen }
+const isToday = dateString === getLocalDateString()
+
+return {
+  date: dateString,
+  label,
+  hasTakes,
+  completed,
+  frozen,
+  isToday,
+}
   })
 
   return (
@@ -653,8 +666,7 @@ return { date: dateString, label, hasTakes, completed, frozen }
       {last7Days.map((day) => (
         <View key={day.date} style={styles.weekDayItem}>
           <Text style={styles.weekDayLabel}>{day.label}</Text>
-
-          <View
+  <View
   style={[
     styles.weekDot,
     !day.hasTakes
@@ -663,7 +675,9 @@ return { date: dateString, label, hasTakes, completed, frozen }
         ? styles.weekDotDone
         : day.frozen
           ? styles.weekDotFrozen
-          : styles.weekDotMissed,
+          : day.isToday
+            ? styles.weekDotPending
+            : styles.weekDotMissed,
   ]}
 />
         </View>
@@ -966,7 +980,9 @@ quickActionsTitle: {
   fontSize: 13,
   fontWeight: '900',
 },
-
+weekDotPending: {
+  backgroundColor: '#7dd3fc',
+},
   loadingCard: {
     backgroundColor: '#101c34',
     borderRadius: 20,

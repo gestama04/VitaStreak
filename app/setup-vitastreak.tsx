@@ -322,21 +322,51 @@ const renderWidgetStep = () => (
 
       <View style={styles.widgetPreview}>
         <View style={styles.widgetPreviewTop}>
-          <Text style={styles.widgetAppName}>VitaStreak</Text>
-          <Text style={styles.widgetStreak}>🔥 0</Text>
-        </View>
+          <View style={styles.widgetPreviewLeft}>
+            <Text style={styles.widgetPreviewTitle}>
+              🔥 {t('setup.widgetPreviewStreakTitle')}
+            </Text>
+            <Text style={styles.widgetPreviewStreakText}>
+              {t('setup.widgetPreviewStreakDays')}
+            </Text>
+          </View>
 
-        <View style={styles.widgetPreviewProgressRow}>
-          <Text style={styles.widgetMutedText}>{t('setup.widgetToday')}</Text>
-          <Text style={styles.widgetPercent}>0%</Text>
+          <View style={styles.widgetPreviewRight}>
+            <Text style={styles.widgetPercent}>75%</Text>
+            <Text style={styles.widgetStatusText}>
+              {t('setup.widgetPreviewProgress')}
+            </Text>
+          </View>
         </View>
-
-        <Text style={styles.widgetStatusText}>
-          {t('setup.widgetEmptyStatus')}
-        </Text>
 
         <View style={styles.widgetProgressTrack}>
           <View style={styles.widgetProgressValue} />
+        </View>
+
+        <View style={styles.widgetWeekRow}>
+          {[
+            { label: t('setup.widgetDayOne'), status: 'empty' },
+            { label: t('setup.widgetDayTwo'), status: 'empty' },
+            { label: t('setup.widgetDayThree'), status: 'empty' },
+            { label: t('setup.widgetDayFour'), status: 'done' },
+            { label: t('setup.widgetDayFive'), status: 'done' },
+            { label: t('setup.widgetDaySix'), status: 'done' },
+            { label: t('setup.widgetDaySeven'), status: 'current' },
+          ].map((day, index) => (
+            <View key={day.label + index} style={styles.widgetWeekDay}>
+              <Text style={styles.widgetWeekLabel}>{day.label}</Text>
+              <View
+                style={[
+                  styles.widgetWeekDot,
+                  day.status === 'empty'
+                    ? styles.widgetWeekDotEmpty
+                    : day.status === 'current'
+                      ? styles.widgetWeekDotCurrent
+                      : styles.widgetWeekDotDone,
+                ]}
+              />
+            </View>
+          ))}
         </View>
       </View>
 
@@ -657,53 +687,88 @@ settingCard: {
   },
   widgetPreviewTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: 12,
   },
-  widgetAppName: {
+  widgetPreviewLeft: {
+    flex: 1,
+  },
+  widgetPreviewRight: {
+    alignItems: 'flex-end',
+    maxWidth: '46%',
+  },
+  widgetPreviewTitle: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '900',
   },
-  widgetStreak: {
-    color: '#ff5a4f',
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  widgetPreviewProgressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 18,
-  },
-  widgetMutedText: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontWeight: '700',
+  widgetPreviewStreakText: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+    marginTop: 5,
   },
   widgetPercent: {
-    color: '#7dd3fc',
-    fontSize: 14,
+    color: '#4ade80',
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: '900',
   },
   widgetStatusText: {
-    color: '#e2e8f0',
-    fontSize: 14,
-    lineHeight: 20,
+    color: '#94a3b8',
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: '800',
-    marginTop: 8,
+    textAlign: 'right',
+    marginTop: 2,
   },
   widgetProgressTrack: {
     height: 8,
     borderRadius: 4,
     backgroundColor: '#1e293b',
     overflow: 'hidden',
-    marginTop: 13,
+    marginTop: 19,
   },
   widgetProgressValue: {
-    width: 6,
+    width: '75%',
     height: '100%',
-    backgroundColor: '#7dd3fc',
+    backgroundColor: '#4ade80',
+    borderRadius: 4,
+  },
+  widgetWeekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 18,
+  },
+  widgetWeekDay: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  widgetWeekLabel: {
+    color: '#94a3b8',
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  widgetWeekDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    marginTop: 7,
+  },
+  widgetWeekDotEmpty: {
+    backgroundColor: '#334155',
+  },
+  widgetWeekDotDone: {
+    backgroundColor: '#4ade80',
+  },
+  widgetWeekDotCurrent: {
+    backgroundColor: '#67e8f9',
   },
   widgetHintBox: {
     flexDirection: 'row',

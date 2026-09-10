@@ -75,7 +75,7 @@ export default {
         targetCellWidth: 4,
         targetCellHeight: 2,
         resizeMode: 'horizontal|vertical',
-        previewImage: './assets/images/icon.png',
+        previewImage: './assets/images/WIDGET.png',
         updatePeriodMillis: 1800000,
       },
     ],

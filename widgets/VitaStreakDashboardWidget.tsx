@@ -17,6 +17,7 @@ const STATUS_COLORS: Record<
   ColorProp
 > = {
   completed: '#4ADE80',
+  pending: '#7DD3FC',
   missed: '#F87171',
   frozen: '#67E8F9',
   empty: '#334155',

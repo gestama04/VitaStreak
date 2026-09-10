@@ -2,6 +2,7 @@ export type VitaStreakWidgetLanguage = 'pt' | 'en'
 
 export type VitaStreakWidgetDayStatus =
   | 'completed'
+  | 'pending'
   | 'missed'
   | 'frozen'
   | 'empty'
