@@ -2,7 +2,7 @@ export default {
   expo: {
     name: 'VitaStreak',
     slug: 'vitastreak',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'vitastreak',
@@ -14,7 +14,7 @@ export default {
     },
 
     android: {
-      versionCode: 8,
+      versionCode: 10,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#0f172a',
@@ -62,6 +62,25 @@ export default {
           },
         },
       ],
+      [
+  'react-native-android-widget',
+  {
+    widgets: [
+      {
+        name: 'VitaStreakDashboard',
+        label: 'VitaStreak',
+        description: 'Streak e progresso diário',
+        minWidth: '250dp',
+        minHeight: '110dp',
+        targetCellWidth: 4,
+        targetCellHeight: 2,
+        resizeMode: 'horizontal|vertical',
+        previewImage: './assets/images/WIDGET.png',
+        updatePeriodMillis: 1800000,
+      },
+    ],
+  },
+],
       'expo-web-browser',
       'expo-asset',
       'expo-localization',

@@ -54,6 +54,8 @@ if (notificationIds.length > 0) {
 
   data.notification_ids = notificationIds
 }
+await refreshTodayDayStatus(user.id)
+
   return data as Supplement
 }
 
@@ -285,6 +287,7 @@ export async function unmarkSupplementTaken(
   if (!user) throw new Error('Utilizador não autenticado')
 
   const today = getDateString()
+  const normalizedReminderTime = normalizeTime(reminderTime)
 
   const { error } = await supabase
     .from('supplement_logs')
@@ -292,9 +295,11 @@ export async function unmarkSupplementTaken(
     .eq('user_id', user.id)
     .eq('supplement_id', supplementId)
     .eq('taken_date', today)
-    .eq('reminder_time', reminderTime)
+    .eq('reminder_time', normalizedReminderTime)
 
   if (error) throw error
+
+  await refreshTodayDayStatus(user.id)
 }
 
 export async function deleteSupplement(supplementId: string) {
@@ -324,6 +329,7 @@ export async function deleteSupplement(supplementId: string) {
   if (error) {
     throw error
   }
+  await refreshTodayDayStatus(user.id)
 }
 
 export async function getSupplementById(id: string) {
@@ -411,6 +417,8 @@ console.log('[SUPP_SERVICE] UPDATE_NEW_NOTIFICATION_IDS', notificationIds)
 
   data.notification_ids = notificationIds
 
+  await refreshTodayDayStatus(user.id)
+
   return data as Supplement
 }
 
@@ -420,6 +428,8 @@ export async function getSupplementStreak() {
   } = await supabase.auth.getUser()
 
   if (!user) throw new Error('Utilizador não autenticado')
+
+  await refreshTodayDayStatus(user.id)
 
   const { data, error } = await supabase
     .from('supplement_day_status')
@@ -695,9 +705,10 @@ async function refreshTodayDayStatus(userId: string) {
 
   const { data: logs, error: logsError } = await supabase
     .from('supplement_logs')
-    .select('supplement_id, taken_date, reminder_time')
+    .select('supplement_id, taken_date, reminder_time, status')
     .eq('user_id', userId)
     .eq('taken_date', today)
+    .eq('status', 'taken')
 
   if (logsError) throw logsError
 
@@ -712,7 +723,16 @@ async function refreshTodayDayStatus(userId: string) {
       }))
     )
 
-  if (expectedTakes.length === 0) return
+  if (expectedTakes.length === 0) {
+    const { error: deleteError } = await supabase
+      .from('supplement_day_status')
+      .delete()
+      .eq('user_id', userId)
+      .eq('date', today)
+
+    if (deleteError) throw deleteError
+    return
+  }
 
   const logsSet = new Set(
     (logs || []).map(
@@ -725,20 +745,22 @@ async function refreshTodayDayStatus(userId: string) {
     logsSet.has(`${take.supplement_id}-${take.reminder_time}`)
   )
 
-  if (!completed) {
-    return
-  }
+  const nowIso = new Date().toISOString()
 
-  const { error } = await supabase.from('supplement_day_status').upsert(
-    {
-      user_id: userId,
-      date: today,
-      completed: true,
-      completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,date' }
-  )
+  const { error } = await supabase
+    .from('supplement_day_status')
+    .upsert(
+      {
+        user_id: userId,
+        date: today,
+        completed,
+        completed_at: completed ? nowIso : null,
+        updated_at: nowIso,
+      },
+      {
+        onConflict: 'user_id,date',
+      }
+    )
 
   if (error) throw error
 }

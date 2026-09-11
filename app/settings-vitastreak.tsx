@@ -16,6 +16,7 @@ import { rescheduleAllSupplementNotifications } from '../services/supplements/su
 import { supabase } from '../supabase-config'
 import useCustomAlert from '../hooks/useCustomAlert'
 import { t } from '@/i18n'
+import { isRunningInExpoGo } from 'expo'
 import { useLanguage } from '@/contexts/language-context'
 import type { LanguagePreference } from '../services/language-service'
 
@@ -71,7 +72,52 @@ export default function SettingsScreen() {
       },
     ])
   }
+const addHomeScreenWidget = async () => {
+  if (Platform.OS !== 'android') return
 
+  if (isRunningInExpoGo()) {
+    showAlert(
+      t('settings.widgetUnavailableTitle'),
+      t('settings.widgetUnavailableMessage'),
+      [{ text: 'OK', onPress: () => {} }]
+    )
+    return
+  }
+
+  try {
+    const { requestVitaStreakWidgetPin } = await import(
+      '../widgets/vita-streak-widget-service'
+    )
+
+    const requestAccepted = await requestVitaStreakWidgetPin()
+
+    if (!requestAccepted) {
+      showAlert(
+        t('settings.widgetManualTitle'),
+        t('settings.widgetManualMessage'),
+        [{ text: 'OK', onPress: () => {} }]
+      )
+      return
+    }
+
+    showAlert(
+      t('settings.widgetRequestSentTitle'),
+      t('settings.widgetRequestSentMessage'),
+      [{ text: 'OK', onPress: () => {} }]
+    )
+  } catch (error) {
+    console.error(
+      '[VitaStreakWidget] Não foi possível pedir o widget:',
+      error
+    )
+
+    showAlert(
+      t('settings.widgetErrorTitle'),
+      t('settings.widgetErrorMessage'),
+      [{ text: 'OK', onPress: () => {} }]
+    )
+  }
+}
   const deleteAccount = () => {
   showAlert(
   t('settings.deleteAccountTitle'),
@@ -139,15 +185,26 @@ const openBatterySettings = async () => {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>{t('settings.application')}</Text>
+  <Text style={styles.sectionTitle}>
+    {t('settings.application')}
+  </Text>
 
-            <SettingItem
-              icon="language-outline"
-              title={t('settings.language')}
-              subtitle={getLanguageLabel(languagePreference)}
-              onPress={chooseLanguage}
-            />
-          </View>
+  <SettingItem
+    icon="language-outline"
+    title={t('settings.language')}
+    subtitle={getLanguageLabel(languagePreference)}
+    onPress={chooseLanguage}
+  />
+
+  {Platform.OS === 'android' ? (
+    <SettingItem
+      icon="apps-outline"
+      title={t('settings.homeScreenWidget')}
+      subtitle={t('settings.homeScreenWidgetSubtitle')}
+      onPress={addHomeScreenWidget}
+    />
+  ) : null}
+</View>
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t('settings.routine')}</Text>
@@ -195,7 +252,7 @@ const openBatterySettings = async () => {
             <SettingItem
               icon="information-circle-outline"
               title={t('settings.version')}
-              subtitle="VitaStreak 1.0.0"
+              subtitle="VitaStreak 1.1.0"
             />
           </View>
 <View style={styles.card}>

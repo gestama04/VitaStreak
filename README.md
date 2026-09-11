@@ -1,186 +1,167 @@
 # 💊 VitaStreak
 
-> AI-powered supplement management application built with **React Native**, **Expo** and **TypeScript**, helping users organize supplement routines, track adherence, receive intelligent insights and build healthier daily habits.
+> AI-powered supplement routine manager for Android, built with **React Native**, **Expo**, **TypeScript**, **Supabase**, and **Google Gemini**.
 
 <p align="center">
-  <img src="assets/images/logo.png" alt="VitaStreak Logo" width="140"/>
+  <img src="assets/images/vitastreak-logo.png" alt="VitaStreak logo" width="140" />
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.gestama.vitastreak"><strong>Download VitaStreak on Google Play</strong></a>
 </p>
 
 ---
 
 ## 📱 Overview
 
-**VitaStreak** is a mobile application developed with **React Native + Expo** to simplify supplement and vitamin management.
+**VitaStreak** helps users organize supplement routines, schedule reminders, track daily adherence, maintain streaks, and review routine information with AI-assisted tools.
 
-The application allows users to create personalized supplement routines, receive reminders, track daily consistency through streaks, analyse supplement labels using **Artificial Intelligence**, and obtain an overall review of their routine.
+The Android app combines local notifications, cloud synchronization, an Android home-screen widget, label recognition, and a bilingual interface in Portuguese and English.
 
-The project combines modern mobile development with cloud technologies and AI to provide a complete supplement management experience.
-
-> **Medical Disclaimer:** VitaStreak is an organizational tool and does not replace professional medical advice, diagnosis or treatment.
+> **Medical disclaimer:** VitaStreak is an organizational and educational tool. It does not provide diagnosis, prescribe treatment, recommend medical dosages, or replace advice from a qualified healthcare professional.
 
 ---
 
-# ✨ Features
+## ✨ Features
 
-## 👤 Account & Profile
+### 👤 Account and profile
 
-* Secure authentication with Supabase Auth
-* Email verification
-* Password recovery
-* User profile management
-* Profile photo upload
-* Account deletion through Supabase Edge Functions
+- Secure authentication with Supabase Auth
+- Email verification and password recovery
+- User profile management
+- Profile photo upload
+- Account deletion through a Supabase Edge Function
 
----
+### 💊 Supplement management
 
-## 💊 Supplement Management
+- Add, edit, activate, deactivate, and remove supplements
+- Store product images
+- Manage brands, dosages, units, ingredients, serving information, and schedules
+- View complete supplement details
+- Mark individual or all daily doses as completed
 
-* Add, edit and remove supplements
-* Product image storage
-* Brand, dosage and ingredient management
-* Active ingredient tracking
-* AI-generated supplement insights
-* Active / inactive supplements
-* Detailed supplement information
+### ⏰ Smart reminders
 
----
+- Multiple reminders per day
+- Daily schedules
+- Selected weekdays
+- Alternate-day routines
+- Custom intervals
+- Local notifications
+- Automatic notification rescheduling when routines change
 
-## ⏰ Smart Reminders
+### 🔥 Progress, streaks, and history
 
-Create flexible supplement schedules with support for:
+- Daily adherence and progress tracking
+- Streak calculation
+- Weekly consistency overview
+- Last 30 days of history
+- Completion status by supplement
+- Streak Freeze support
 
-* Multiple daily reminders
-* Daily schedules
-* Specific weekdays
-* Alternate-day routines
-* Custom intervals
-* Local notifications
-* Automatic reminder rescheduling
+### 📲 Android home-screen widget
 
-Users can also mark all daily supplements as completed with a single action.
+- Current streak
+- Daily completion percentage
+- Completed and total doses
+- Seven-day status overview
+- Portuguese and English content
+- Tap to open the VitaStreak Home screen
 
----
+### 🤖 VitaStreak AI
 
-## 🔥 Streak & History
+VitaStreak uses Google Gemini through Supabase Edge Functions. The API key remains on the server rather than in the mobile application.
 
-* Daily adherence tracking
-* Streak calculation
-* Weekly consistency widget
-* Last 30 days history
-* Supplement completion status
-* Daily progress tracking
+AI-assisted features include:
 
----
+- Supplement label analysis from photographs
+- Structured extraction of product and ingredient information
+- General supplement routine review
+- Identification of possible ingredient duplication
+- General timing observations
+- Suggested questions to discuss with a healthcare professional
+- Routine-aware chat in Portuguese and English
 
-## 🤖 Artificial Intelligence
+AI output is informational only and is constrained not to diagnose, prescribe treatment, or recommend dosages.
 
-VitaStreak integrates **Google Gemini AI** to analyse supplement labels directly from photographs.
+### ☁️ Cloud features
 
-The AI automatically extracts:
+- Supabase Authentication
+- PostgreSQL database
+- Row Level Security
+- Supabase Edge Functions
+- Cloudinary image storage
 
-* Supplement name
-* Brand
-* Main ingredient
-* Dosage
-* Units
-* Serving size
-* Package quantity
-* Label instructions
-* Active ingredients
-* General benefits
-* Safety notes
+### 🎨 User experience
 
-The application also includes:
-
-* AI-powered supplement routine review
-* Local AI coach suggesting schedule improvements and identifying possible duplicate supplements.
-
----
-
-## ☁️ Cloud Features
-
-* Supabase Authentication
-* PostgreSQL Database
-* Row Level Security
-* Edge Functions
-* Cloudinary image storage
+- Modern Android interface
+- Light and dark themes
+- Portuguese and English localization
+- Fast navigation with Expo Router
+- Responsive screen layouts
+- First-run setup for notifications, legal acceptance, and widget installation
 
 ---
 
-## 📲 Notifications
+## 🛠️ Tech stack
 
-Built using **Expo Notifications**, allowing users to receive reminders according to their personalized supplement schedule.
+### Mobile
 
-Notifications are automatically updated whenever routines change.
+- React Native
+- Expo SDK 57
+- Expo Router
+- TypeScript
+- React Native Android Widget
 
----
+### Backend
 
-## 🎨 User Experience
+- Supabase
+- PostgreSQL
+- Row Level Security
+- Deno Edge Functions
 
-* Modern mobile interface
-* Light & Dark themes
-* Fast navigation
-* Responsive design
-* Optimized user experience
+### Artificial intelligence
 
----
+- Google Gemini API
+- `@google/generative-ai`
 
-# 🛠️ Tech Stack
+### Cloud and device services
 
-## Mobile
-
-* React Native
-* Expo SDK 54
-* Expo Router
-* TypeScript
-
-## Backend
-
-* Supabase
-* PostgreSQL
-* Edge Functions
-* Row Level Security
-
-## Artificial Intelligence
-
-* Google Gemini API
-
-## Cloud Services
-
-* Cloudinary
-
-## Other Technologies
-
-* Expo Notifications
-* Expo Image Picker
-* Expo Image Manipulator
-* Expo File System
-* React Native SVG
-* AsyncStorage
+- Cloudinary
+- Expo Notifications
+- Expo Image Picker
+- Expo Image Manipulator
+- Expo File System
+- React Native SVG
+- AsyncStorage
 
 ---
 
-# 📁 Project Structure
+## 📁 Project structure
 
 ```text
 app/
+assets/
 components/
+contexts/
 hooks/
+i18n/
 services/
 supabase/
 types/
 utils/
-assets/
+widgets/
 ```
 
 ---
 
-# 🚀 Installation
+## 🚀 Local development
 
 Clone the repository:
 
 ```bash
 git clone https://github.com/gestama04/VitaStreak.git
+cd VitaStreak
 ```
 
 Install dependencies:
@@ -189,142 +170,136 @@ Install dependencies:
 npm install
 ```
 
-If dependency conflicts occur:
-
-```bash
-npm install --legacy-peer-deps
-```
-
 Start the development server:
 
 ```bash
 npx expo start
 ```
 
-Useful commands:
+Run project checks:
 
 ```bash
-npm run android
-npm run ios
-npm run web
-npm run lint
-npm run test
+npx tsc --noEmit
+npx expo-doctor
+npx expo install --check
 ```
+
+> The Android widget is a native feature and is not available in Expo Go. Use an Android development, preview, or production build to test it.
 
 ---
 
-# 🔐 Environment Variables
+## 🔐 Environment variables
 
-Create a `.env` file in the project root.
+Create a `.env` file in the project root:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_project_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-
 EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 ```
 
-Gemini API keys should never be stored in the frontend.
-
-Use Supabase Secrets instead:
+The Gemini API key must not be stored in the frontend. Add it to Supabase Secrets:
 
 ```bash
 npx supabase secrets set GEMINI_API_KEY=your_api_key
 ```
 
-Never commit API keys, service role keys or private credentials.
+For remote EAS builds, provide `google-services.json` as a `GOOGLE_SERVICES_JSON` file environment variable in the appropriate EAS environment.
+
+Never commit `.env`, API keys, service-role keys, keystores, or private credentials.
 
 ---
 
-# 📸 Screenshots
+## 🧠 AI workflow
 
-Screenshots will be added soon.
+1. The user captures or selects a supplement label.
+2. The app optimizes the image.
+3. The app calls a Supabase Edge Function.
+4. The Edge Function sends the image and instructions to Google Gemini.
+5. The model returns structured information.
+6. The Edge Function validates and normalizes the response.
+7. The user reviews the information before saving it.
 
-Suggested screenshots:
-
-* Welcome
-* Login
-* Home
-* Supplements
-* AI Label Recognition
-* AI Routine Review
-* History
-* Profile
-* Settings
+Routine review and chat follow the same server-side model, using active supplement data and the selected application language.
 
 ---
 
-# 🧠 Artificial Intelligence Workflow
-
-1. User selects or captures a supplement label.
-2. The image is optimized.
-3. The application calls a Supabase Edge Function.
-4. The Edge Function sends the image to Google Gemini.
-5. Structured supplement information is returned to the application.
-6. Users can review and save the generated data.
-
----
-
-# 📦 Android Build
-
-Production build:
-
-```bash
-eas build -p android --profile production
-```
+## 📦 Android builds
 
 Preview APK:
 
 ```bash
-eas build -p android --profile preview
+npx eas-cli@latest build -p android --profile preview
 ```
 
-Current configuration:
+Production Android App Bundle:
 
-* Android Package: `com.gestama.vitastreak`
-* iOS Bundle Identifier: `com.gestama.vitastreak`
-* Version: **1.0.0**
+```bash
+npx eas-cli@latest build -p android --profile production
+```
+
+Current Android configuration:
+
+- Package: `com.gestama.vitastreak`
+- Minimum Android API: 24
+- Target Android API: 36
+- Expo SDK: 57
+- Published version: **1.1.0**
+- Version code: **10**
 
 ---
 
-# ⚠️ Current Status
+## 📸 Screenshots
 
-This repository is maintained for portfolio purposes.
+Current Google Play screenshots showcase:
 
-The project is fully implemented and demonstrates the complete architecture of the application.
+- Home dashboard
+- AI-assisted label recognition
+- AI-generated supplement summary
+- Today's routine
+- Supplement list
 
-Some cloud services may require additional configuration before running the application locally.
+See the published listing on [Google Play](https://play.google.com/store/apps/details?id=com.gestama.vitastreak).
 
 ---
 
-# ⚕️ Medical Disclaimer
+## ⚠️ Project status
+
+VitaStreak **1.1.0 is published on Google Play**.
+
+The repository is maintained as an active product and portfolio project. Running the complete application locally requires configuration of its external cloud services.
+
+Planned future improvements include expanded AI document understanding, voice input, refined Streak Freeze rewards, and additional localization based on user demand.
+
+---
+
+## ⚕️ Medical disclaimer
 
 VitaStreak helps users organize supplement routines and provides general AI-generated information.
 
 The application:
 
-* does **not** diagnose diseases
-* does **not** prescribe treatments
-* does **not** recommend medical dosages
-* does **not** replace professional medical advice
+- does **not** diagnose diseases
+- does **not** prescribe treatments
+- does **not** recommend medical dosages
+- does **not** replace professional medical advice
 
 Always consult a qualified healthcare professional before making decisions regarding supplements or medication.
 
 ---
 
-# 📄 License
+## 📄 License
 
-This project is available for portfolio and educational purposes.
+This project is available for portfolio and educational purposes. No permission is granted to redistribute it as a competing commercial product without authorization.
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
 **Bernardo Silva**
 
 Software Engineer / Mobile Developer / Web Lead
 
-GitHub: https://github.com/gestama04
-
-LinkedIn: https://www.linkedin.com/in/eng-bernardo-silva
+- GitHub: https://github.com/gestama04
+- LinkedIn: https://www.linkedin.com/in/eng-bernardo-silva
