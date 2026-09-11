@@ -21,6 +21,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 
 import { useAuth } from '../auth-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -55,7 +56,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      showAlert('Erro', 'Por favor, preenche todos os campos.', [
+      showAlert(t('login.error'), t('login.fillAllFields'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -83,19 +84,19 @@ export default function LoginScreen() {
   error?.message?.toLowerCase?.().includes('email not confirmed')
 ) {
   showAlert(
-    'Confirma o email',
-    'Precisas de confirmar o email antes de entrar. Queres reenviar o email de confirmação?',
+    t('login.confirmEmailTitle'),
+    t('login.confirmEmailMessage'),
     [
-      { text: 'Cancelar', onPress: () => {} },
-      { text: 'Reenviar', onPress: handleResendConfirmation },
+      { text: t('login.cancel'), onPress: () => {} },
+      { text: t('login.resend'), onPress: handleResendConfirmation },
     ]
   )
   return
 }
 
       showAlert(
-        'Erro de login',
-        'Email ou password incorretos. Verifica os dados e tenta novamente.',
+        t('login.loginErrorTitle'),
+        t('login.invalidCredentials'),
         [{ text: 'OK', onPress: () => {} }]
       )
     } finally {
@@ -107,7 +108,7 @@ export default function LoginScreen() {
   const resetEmail = forgotPasswordEmail.trim()
 
   if (!resetEmail) {
-    showAlert('Erro', 'Insere o teu email para redefinir a password.', [
+    showAlert(t('login.error'), t('login.enterEmailToReset'), [
       { text: 'OK', onPress: () => {} },
     ])
     return
@@ -121,8 +122,8 @@ export default function LoginScreen() {
     if (error) throw error
 
     showAlert(
-      'Email enviado',
-      'Enviámos um código para o teu email. Insere-o no próximo ecrã.',
+      t('login.emailSent'),
+      t('login.resetCodeSent'),
       [
         {
           text: 'OK',
@@ -138,7 +139,7 @@ export default function LoginScreen() {
     console.error('Erro ao enviar reset:', error)
     showAlert(
       'Erro',
-      'Não foi possível enviar o email. Confirma se o email está correto.',
+      t('login.resetEmailError'),
       [{ text: 'OK', onPress: () => {} }]
     )
   } finally {
@@ -148,7 +149,7 @@ export default function LoginScreen() {
   
   const handleResendConfirmation = async () => {
   if (!email.trim()) {
-    showAlert('Email em falta', 'Insere o teu email para reenviar a confirmação.', [
+    showAlert(t('login.missingEmail'), t('login.enterEmailToResend'), [
       { text: 'OK', onPress: () => {} },
     ])
     return
@@ -168,13 +169,13 @@ export default function LoginScreen() {
     if (error) throw error
 
     showAlert(
-      'Email enviado',
-      'Enviámos novamente o email de confirmação. Verifica também o spam.',
+      t('login.emailSent'),
+      t('login.confirmationResent'),
       [{ text: 'OK', onPress: () => {} }]
     )
   } catch (error) {
     console.error('Erro ao reenviar confirmação:', error)
-    showAlert('Erro', 'Não foi possível reenviar o email de confirmação.', [
+    showAlert(t('login.error'), t('login.resendError'), [
       { text: 'OK', onPress: () => {} },
     ])
   } finally {
@@ -208,23 +209,23 @@ export default function LoginScreen() {
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>VitaStreak</Text>
+              <Text style={styles.title}>{t('common.appName')}</Text>
               <Text style={styles.subtitle}>
-                Acompanha suplementos, tomas e lembretes.
+                {t('login.subtitle')}
               </Text>
             </View>
 
             <View style={styles.card}>
               {showForgotPassword ? (
                 <>
-                  <Text style={styles.cardTitle}>Recuperar password</Text>
+                  <Text style={styles.cardTitle}>{t('login.recoverPassword')}</Text>
                   <Text style={styles.cardSubtitle}>
-                    Enviaremos instruções para o teu email.
+                    {t('login.recoveryInstructions')}
                   </Text>
 
                   <TextInput
                     style={styles.input}
-                    placeholder="Email"
+                    placeholder={t('login.email')}
                     placeholderTextColor="#94a3b8"
                     value={forgotPasswordEmail}
                     onChangeText={setForgotPasswordEmail}
@@ -240,7 +241,7 @@ export default function LoginScreen() {
                     {isLoading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      <Text style={styles.buttonText}>Enviar email</Text>
+                      <Text style={styles.buttonText}>{t('login.sendEmail')}</Text>
                     )}
                   </TouchableOpacity>
 
@@ -248,16 +249,16 @@ export default function LoginScreen() {
                     style={styles.linkButton}
                     onPress={() => setShowForgotPassword(false)}
                   >
-                    <Text style={styles.linkText}>Voltar ao login</Text>
+                    <Text style={styles.linkText}>{t('login.backToLogin')}</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <>
-                  <Text style={styles.cardTitle}>Login</Text>
+                  <Text style={styles.cardTitle}>{t('login.title')}</Text>
 
                   <TextInput
                     style={styles.input}
-                    placeholder="Email"
+                    placeholder={t('login.email')}
                     placeholderTextColor="#94a3b8"
                     value={email}
                     onChangeText={setEmail}
@@ -268,7 +269,7 @@ export default function LoginScreen() {
                   <View style={styles.passwordContainer}>
                     <TextInput
                       style={styles.passwordInput}
-                      placeholder="Password"
+                      placeholder={t('login.password')}
                       placeholderTextColor="#94a3b8"
                       value={password}
                       onChangeText={setPassword}
@@ -295,7 +296,7 @@ export default function LoginScreen() {
                         trackColor={{ false: '#475569', true: '#7c3aed' }}
                         thumbColor={rememberMe ? '#ffffff' : '#cbd5e1'}
                       />
-                      <Text style={styles.rememberText}>Lembrar-me</Text>
+                      <Text style={styles.rememberText}>{t('login.rememberMe')}</Text>
                     </View>
 
                     <TouchableOpacity
@@ -305,7 +306,7 @@ export default function LoginScreen() {
                       }}
                     >
                       <Text style={styles.forgotText}>
-                        Esqueceste-te?
+                        {t('login.forgotPassword')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -318,7 +319,7 @@ export default function LoginScreen() {
                     {isLoading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      <Text style={styles.buttonText}>Entrar</Text>
+                      <Text style={styles.buttonText}>{t('login.signIn')}</Text>
                     )}
                   </TouchableOpacity>
 
@@ -327,7 +328,7 @@ export default function LoginScreen() {
                     onPress={() => router.push('/register-vitastreak' as any)}
                   >
                     <Text style={styles.registerText}>
-                      Ainda não tens conta? Regista-te
+                      {t('login.noAccount')}
                     </Text>
                   </TouchableOpacity>
                 </>

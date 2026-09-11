@@ -2,7 +2,7 @@ export default {
   expo: {
     name: 'VitaStreak',
     slug: 'vitastreak',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'vitastreak',
@@ -14,7 +14,7 @@ export default {
     },
 
     android: {
-      versionCode: 8,
+      versionCode: 10,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#0f172a',
@@ -27,12 +27,15 @@ export default {
     web: {
       bundler: 'metro',
       output: 'static',
-      favicon: './assets/images/favicon.png',
+      favicon: './assets/images/icon.png',
     },
 
     plugins: [
       'expo-router',
       "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-sharing",
+      "expo-status-bar",
       [
         'expo-splash-screen',
         {
@@ -53,12 +56,31 @@ export default {
         'expo-build-properties',
         {
           android: {
-            compileSdkVersion: 35,
-            targetSdkVersion: 35,
-            buildToolsVersion: '35.0.0',
+            compileSdkVersion: 36,
+            targetSdkVersion: 36,
+            buildToolsVersion: '36.0.0',
           },
         },
       ],
+      [
+  'react-native-android-widget',
+  {
+    widgets: [
+      {
+        name: 'VitaStreakDashboard',
+        label: 'VitaStreak',
+        description: 'Streak e progresso diário',
+        minWidth: '250dp',
+        minHeight: '110dp',
+        targetCellWidth: 4,
+        targetCellHeight: 2,
+        resizeMode: 'horizontal|vertical',
+        previewImage: './assets/images/WIDGET.png',
+        updatePeriodMillis: 1800000,
+      },
+    ],
+  },
+],
       'expo-web-browser',
       'expo-asset',
       'expo-localization',

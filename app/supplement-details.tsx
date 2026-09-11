@@ -14,17 +14,21 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getSupplementById } from '../services/supplements/supplement-service'
 import { Supplement } from '../types/supplements/supplement'
+import { t, i18n } from '@/i18n'
 
 function formatDate(value?: string | null) {
   if (!value) return null
 
-  return new Date(value).toLocaleDateString('pt-PT', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return new Date(value).toLocaleString(
+    i18n.locale === 'pt' ? 'pt-PT' : 'en-US',
+    {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }
+  )
 }
 
 function formatTimes(supplement: Supplement) {
@@ -35,7 +39,7 @@ function formatTimes(supplement: Supplement) {
         ? [supplement.reminder_time]
         : []
 
-  if (times.length === 0) return 'Sem hora definida'
+  if (times.length === 0) return t('supplementDetails.noTime')
 
   return times
     .map((time) => String(time).slice(0, 5))
@@ -47,45 +51,45 @@ function formatFrequency(supplement: Supplement) {
   const frequency = supplement.frequency_type ?? 'daily'
 
   if (frequency === 'daily') {
-    return 'Todos os dias'
+    return t('supplementDetails.everyDay')
   }
 
   if (frequency === 'every_other_day') {
-    return 'Dia sim / dia não'
+    return t('supplementDetails.everyOtherDay')
   }
 
   if (frequency === 'custom_interval') {
     const interval = supplement.interval_days ?? 1
 
-return interval === 1
-  ? 'Todos os dias'
-  : `A cada ${interval} dias`
+    return interval === 1
+      ? t('supplementDetails.everyDay')
+      : t('supplementDetails.everyNDays', { count: interval })
   }
 
   const days = supplement.days_of_week
 
   if (!days || days.length === 0) {
-    return 'Sem dias definidos'
-  }
-
-  const labels: Record<number, string> = {
-    0: 'Dom',
-    1: 'Seg',
-    2: 'Ter',
-    3: 'Qua',
-    4: 'Qui',
-    5: 'Sex',
-    6: 'Sáb',
+    return t('supplementDetails.noDays')
   }
 
   if (days.length === 7) {
-    return 'Todos os dias'
+    return t('supplementDetails.everyDay')
+  }
+
+  const labels: Record<number, string> = {
+    0: t('supplementDetails.sundayShort'),
+    1: t('supplementDetails.mondayShort'),
+    2: t('supplementDetails.tuesdayShort'),
+    3: t('supplementDetails.wednesdayShort'),
+    4: t('supplementDetails.thursdayShort'),
+    5: t('supplementDetails.fridayShort'),
+    6: t('supplementDetails.saturdayShort'),
   }
 
   return [...days]
-  .sort((a, b) => a - b)
-  .map((day) => labels[day] ?? String(day))
-  .join(', ')
+    .sort((a, b) => a - b)
+    .map((day) => labels[day] ?? String(day))
+    .join(', ')
 }
 
 export default function SupplementDetailsScreen() {
@@ -130,7 +134,7 @@ export default function SupplementDetailsScreen() {
   if (!supplement) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.emptyText}>Suplemento não encontrado</Text>
+        <Text style={styles.emptyText}>{t('supplementDetails.notFound')}</Text>
       </View>
     )
   }
@@ -191,46 +195,46 @@ export default function SupplementDetailsScreen() {
           <View style={styles.infoGrid}>
             <InfoBox
               icon="time-outline"
-              label="Hora"
+              label={t('supplementDetails.time')}
               value={formatTimes(supplement)}
             />
             <InfoBox
               icon="calendar-outline"
-              label="Dias"
+              label={t('supplementDetails.days')}
               value={formatFrequency(supplement)}
             />
             <InfoBox
               icon="flask-outline"
-              label="Dosagem"
+              label={t('supplementDetails.dosage')}
               value={
                 supplement.dosage_amount && supplement.dosage_unit
                   ? `${supplement.dosage_amount} ${supplement.dosage_unit}`
-                  : 'Sem dosagem'
+                  : t('supplementDetails.noDosage')
               }
             />
             <InfoBox
               icon="cube-outline"
-              label="Embalagem"
+              label={t('supplementDetails.package')}
               value={
   supplement.container_quantity
     ? supplement.container_quantity === 1
-      ? '1 unidade'
-      : `${supplement.container_quantity} unidades`
-    : 'Sem quantidade'
+      ? t('supplementDetails.oneUnit')
+      : t('supplementDetails.units', { count: supplement.container_quantity })
+    : t('supplementDetails.noQuantity')
 }
             />
           </View>
 
-          <Section title="Ingrediente principal">
+          <Section title={t('supplementDetails.mainIngredient')}>
             <Text style={styles.sectionText}>
-              {supplement.main_ingredient || 'Sem ingrediente principal'}
+              {supplement.main_ingredient || t('supplementDetails.noMainIngredient')}
             </Text>
           </Section>
 
           {Array.isArray(supplement.active_ingredients) &&
           supplement.active_ingredients.length > 0 ? (
-            <Section title="Ingredientes detetados">
-              {supplement.active_ingredients.map((ingredient: any, index: number) => (
+            <Section title={t('supplementDetails.detectedIngredients')}>
+              {supplement.active_ingredients.map((ingredient, index) => (
                 <Text key={`${ingredient.name}-${index}`} style={styles.sectionText}>
                   {ingredient.name}
                   {ingredient.amount ? ` • ${ingredient.amount}` : ''}
@@ -240,27 +244,27 @@ export default function SupplementDetailsScreen() {
             </Section>
           ) : null}
 
-          <Section title="Tamanho da toma">
+          <Section title={t('supplementDetails.servingSize')}>
             <Text style={styles.sectionText}>
-              {supplement.serving_size || 'Sem tamanho da toma'}
+              {supplement.serving_size || t('supplementDetails.noServingSize')}
             </Text>
           </Section>
 
-          <Section title="Instruções do rótulo">
+          <Section title={t('supplementDetails.labelInstructions')}>
             <Text style={styles.sectionText}>
-              {supplement.instructions_from_label || 'Sem instruções guardadas'}
+              {supplement.instructions_from_label || t('supplementDetails.noInstructions')}
             </Text>
           </Section>
 
           {supplement.ai_insights ? (
-  <Section title="Resumo IA">
+  <Section title={t('supplementDetails.aiSummary')}>
     {supplement.ai_insights.summary ? (
       <Text style={styles.sectionText}>{supplement.ai_insights.summary}</Text>
     ) : null}
 
     {supplement.ai_insights.benefits?.length > 0 ? (
       <>
-        <Text style={styles.sectionText}>Benefícios gerais:</Text>
+        <Text style={styles.sectionText}>{t('supplementDetails.generalBenefits')}</Text>
         {supplement.ai_insights.benefits.map((item, index) => (
           <Text key={index} style={styles.sectionText}>• {item}</Text>
         ))}
@@ -269,7 +273,7 @@ export default function SupplementDetailsScreen() {
 
     {supplement.ai_insights.cautions?.length > 0 ? (
       <>
-        <Text style={styles.sectionText}>Atenção:</Text>
+        <Text style={styles.sectionText}>{t('supplementDetails.caution')}</Text>
         {supplement.ai_insights.cautions.map((item, index) => (
           <Text key={index} style={styles.sectionText}>• {item}</Text>
         ))}
@@ -277,17 +281,17 @@ export default function SupplementDetailsScreen() {
     ) : null}
 
     <Text style={styles.dateText}>
-      Informação geral. Não substitui aconselhamento médico.
+      {t('supplementDetails.medicalDisclaimer')}
     </Text>
   </Section>
 ) : null}
 
           <View style={styles.datesBox}>
             {createdAt ? (
-              <Text style={styles.dateText}>Criado: {createdAt}</Text>
+              <Text style={styles.dateText}>{t('supplementDetails.created', { date: createdAt })}</Text>
             ) : null}
             {updatedAt ? (
-              <Text style={styles.dateText}>Atualizado: {updatedAt}</Text>
+              <Text style={styles.dateText}>{t('supplementDetails.updated', { date: updatedAt })}</Text>
             ) : null}
           </View>
         </View>

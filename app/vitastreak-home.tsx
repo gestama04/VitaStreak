@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native'
+import { isRunningInExpoGo } from 'expo'
 import { useFocusEffect, useRouter, Stack } from 'expo-router'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import Svg, { Circle } from 'react-native-svg'
@@ -27,6 +28,7 @@ import {
   syncFreezeRewards
 } from '../services/supplements/supplement-service'
 import ConfettiCannon from 'react-native-confetti-cannon'
+import { t, i18n } from '@/i18n'
 
 const RING_SIZE = 108
 const RING_STROKE = 10
@@ -62,12 +64,23 @@ export default function VitaStreakHome() {
   const firstName =
     currentUser?.user_metadata?.first_name ||
     currentUser?.user_metadata?.name?.split?.(' ')?.[0] ||
-    'Bernardo'
+    t('home.defaultName')
 
-  const todayTotal = todayItems.length
-  const todayCompleted = todayItems.filter((item) => item.taken_today).length
-  const todayRemaining = Math.max(todayTotal - todayCompleted, 0)
-  const progress = todayTotal > 0 ? todayCompleted / todayTotal : 0
+const todayCompleted = todayItems.filter(
+  (item) => item.taken_today
+).length
+
+const todayTotal = todayItems.length
+
+const todayRemaining = Math.max(
+  todayTotal - todayCompleted,
+  0
+)
+
+const progress =
+  todayTotal > 0
+    ? todayCompleted / todayTotal
+    : 0
 
   const safeTime = (t?: string | null) => t ?? ''
 const freezeYesterday = async () => {
@@ -88,24 +101,27 @@ await loadHomeData()
 
   if (hour >= 6 && hour < 12) {
     return {
-      text: 'Bom dia',
+      text: t('home.morning'),
       emoji: '☀️',
-      sub: 'Começa forte hoje 💪',
+      sub: t('home.morningSub'),
     }
   }
 
   if (hour >= 12 && hour < 20) {
     return {
-      text: 'Boa tarde',
+      text: t('home.afternoon'),
       emoji: '🌤️',
-      sub: 'Continua consistente 🔥',
+      sub: t('home.afternoonSub'),
     }
   }
 
   return {
-    text: 'Boa noite',
-    emoji: '🌙',
-    sub: 'Fecha o dia em grande ✨',
+    text: t('home.evening'),
+    emoji: hour >= 20 && hour < 22 ? '🌆' : '🌙',
+    sub:
+      hour >= 20 && hour < 22
+        ? t('home.eveningSub')
+        : t('home.nightSub'),
   }
 }
 
@@ -192,8 +208,12 @@ await loadHomeData()
   const loadHomeData = async () => {
     try {
       setLoading(true)
-
-      const [supplements, today, currentStreak, historyDays] = await Promise.all([
+const [
+  supplements,
+  today,
+  currentStreak,
+  historyDays,
+] = await Promise.all([
   getSupplements(),
   getTodaySupplements(),
   getSupplementStreak(),
@@ -311,6 +331,69 @@ const yesterdayStatus = weekDays.find((day) => day.date === yesterdayString)
 const canUseFreeze =
   freezeBalance > 0 &&
   (!yesterdayStatus || (!yesterdayStatus.completed && !yesterdayStatus.frozen))
+const weekDaysSignature = JSON.stringify(weekDays)
+  useEffect(() => {
+  if (loading || isRunningInExpoGo()) return
+
+  const syncWidget = async () => {
+    try {
+      const { updateVitaStreakWidget } = await import(
+        '../widgets/vita-streak-widget-service'
+      )
+
+      const widgetWeekDays = Array.from({ length: 7 }).map((_, index) => {
+        const date = new Date()
+        date.setDate(date.getDate() - (6 - index))
+
+        const dateString = getLocalDateString(date)
+        const found = weekDays.find((day) => day.date === dateString)
+        const label = date
+          .toLocaleDateString(i18n.locale === 'pt' ? 'pt-PT' : 'en-US', {
+            weekday: 'short',
+          })
+          .replace('.', '')
+          .slice(0, 3)
+
+        const isToday = dateString === getLocalDateString()
+
+return {
+  label,
+  status: !found
+    ? ('empty' as const)
+    : found.completed
+      ? ('completed' as const)
+      : found.frozen
+        ? ('frozen' as const)
+        : isToday
+          ? ('pending' as const)
+          : ('missed' as const),
+}
+      })
+
+      await updateVitaStreakWidget({
+        streak,
+        completed: todayCompleted,
+        total: todayTotal,
+        language: i18n.locale === 'pt' ? 'pt' : 'en',
+        weekDays: widgetWeekDays,
+      })
+    } catch (error) {
+      console.warn(
+        '[VitaStreakWidget] Não foi possível atualizar:',
+        error
+      )
+    }
+  }
+
+  syncWidget()
+}, [
+  loading,
+  streak,
+  todayCompleted,
+  todayTotal,
+  i18n.locale,
+  weekDaysSignature,
+])
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -322,13 +405,18 @@ const canUseFreeze =
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.appNameBox}>
-          <Text style={styles.appName}>VitaStreak</Text>
+          <Text style={styles.appName}>{t('common.appName')}</Text>
         </View>
 
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <View style={styles.greetingRow}>
-              <Text style={styles.greeting}>
+              <Text
+                style={styles.greeting}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.72}
+              >
                 {greeting.text}, {firstName}!
               </Text>
               <Text style={styles.greetingEmoji}>{greeting.emoji}</Text>
@@ -362,7 +450,7 @@ const canUseFreeze =
 >
   <View style={styles.heroTop}>
     <View style={{ flex: 1 }}>
-      <Text style={styles.heroLabel}>{streakEmoji} Streak Atual</Text>
+      <Text style={styles.heroLabel}>{streakEmoji} {t('home.currentStreak')}</Text>
 
       {loading ? (
         <ActivityIndicator color="#7dd3fc" style={{ marginTop: 18 }} />
@@ -370,7 +458,7 @@ const canUseFreeze =
         <>
           <Text style={styles.streakNumber}>{streak}</Text>
           <Text style={styles.streakText}>
-            dia{streak === 1 ? '' : 's'} seguido{streak === 1 ? '' : 's'}
+            {streak === 1 ? t('home.streakDay') : t('home.streakDays')}
           </Text>
         </>
       )}
@@ -414,27 +502,29 @@ const canUseFreeze =
 </View>
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Hoje</Text>
+            <Text style={styles.sectionTitle}>{t('home.today')}</Text>
             <Text style={styles.todayStatus}>
               {loading
-                ? 'A carregar...'
+                ? t('home.loading')
                 : todayTotal === 0
-                  ? 'Nada agendado para hoje'
+                  ? t('home.nothingScheduled')
                   : todayRemaining === 0
-                    ? 'Todas as tomas feitas hoje'
-                    : `${todayCompleted} de ${todayTotal} concluídas`}
+                    ? t('home.allCompleted')
+                    : t('home.completedCount', { completed: todayCompleted, total: todayTotal })}
             </Text>
           </View>
 
-          {todayTotal > 0 && todayRemaining > 0 ? (
-            <TouchableOpacity style={styles.markAllButton} onPress={markAllToday}>
-              <Text style={styles.markAllText}>Marcar todas</Text>
-            </TouchableOpacity>
-          ) : (
+          <View style={styles.sectionActions}>
             <TouchableOpacity onPress={() => router.push('/today' as any)}>
-              <Text style={styles.sectionAction}>Ver tudo</Text>
+              <Text style={styles.sectionAction}>{t('home.viewAll')}</Text>
             </TouchableOpacity>
-          )}
+
+            {todayTotal > 0 && todayRemaining > 0 ? (
+              <TouchableOpacity style={styles.markAllButton} onPress={markAllToday}>
+                <Text style={styles.markAllText}>{t('home.markAll')}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
 
         {loading ? (
@@ -448,9 +538,9 @@ const canUseFreeze =
             activeOpacity={0.85}
           >
             <Ionicons name="add-circle-outline" size={28} color="#7dd3fc" />
-            <Text style={styles.emptyTitle}>Adicionar primeiro suplemento</Text>
+            <Text style={styles.emptyTitle}>{t('home.addFirst')}</Text>
             <Text style={styles.emptyText}>
-              Cria uma rotina e os lembretes aparecem aqui.
+              {t('home.emptyMessage')}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -476,7 +566,7 @@ const canUseFreeze =
                   <Text style={styles.todayName} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  <Text style={styles.todayTime}>{time || 'Sem hora'}</Text>
+                  <Text style={styles.todayTime}>{time || t('home.noTime')}</Text>
                 </View>
 
                 <View style={[styles.checkCircle, item.taken_today && styles.checkCircleDone]}>
@@ -492,37 +582,37 @@ const canUseFreeze =
         )}
 
         <View style={styles.quickActionsHeader}>
-  <Text style={styles.quickActionsTitle}>Ações rápidas</Text>
+  <Text style={styles.quickActionsTitle}>{t('home.quickActions')}</Text>
 </View>
 
         <View style={styles.quickActions}>
           {canUseFreeze ? (
   <QuickAction
     icon={<Ionicons name="snow-outline" size={24} color="#67e8f9" />}
-    title={`Usar gelo (${freezeBalance})`}
-    text="Protege o streak de ontem"
+    title={t('home.useFreeze', { count: freezeBalance })}
+    text={t('home.protectYesterday')}
     onPress={freezeYesterday}
   />
 ) : null}
   <QuickAction
     icon={<MaterialCommunityIcons name="pill" size={24} color="#7dd3fc" />}
-    title="Ver suplementos"
-    text={`${totalSupplements} guardados`}
+    title={t('home.viewSupplements')}
+    text={t('home.savedCount', { count: totalSupplements })}
     onPress={() => router.push('/supplements' as any)}
   />
 
   <QuickAction
   highlighted
   icon={<Ionicons name="add" size={26} color="#071124" />}
-  title="Adicionar suplemento"
-  text="Nova toma, com foto por IA"
+  title={t('home.addSupplement')}
+  text={t('home.addSupplementDescription')}
   onPress={() => router.push('/add-supplement' as any)}
 />
 
   <QuickAction
     icon={<Ionicons name="sparkles-outline" size={24} color="#c4b5fd" />}
-    title="Análise IA"
-    text="Rever rotina e pontos a confirmar"
+    title={t('home.aiAnalysis')}
+    text={t('home.aiAnalysisDescription')}
     onPress={() => router.push('/ai-routine-review' as any)}
   />
 </View>
@@ -551,7 +641,7 @@ function WeeklyStatusWidget({ days }: { days: SupplementDayStatus[] }) {
     const found = days.find((day) => day.date === dateString)
 
     const label = date
-      .toLocaleDateString('pt-PT', { weekday: 'short' })
+      .toLocaleDateString(i18n.locale === 'pt' ? 'pt-PT' : 'en-US', { weekday: 'short' })
       .replace('.', '')
       .slice(0, 3)
 
@@ -559,7 +649,16 @@ function WeeklyStatusWidget({ days }: { days: SupplementDayStatus[] }) {
     const completed = !!found?.completed
 const frozen = !!found?.frozen
 
-return { date: dateString, label, hasTakes, completed, frozen }
+const isToday = dateString === getLocalDateString()
+
+return {
+  date: dateString,
+  label,
+  hasTakes,
+  completed,
+  frozen,
+  isToday,
+}
   })
 
   return (
@@ -567,8 +666,7 @@ return { date: dateString, label, hasTakes, completed, frozen }
       {last7Days.map((day) => (
         <View key={day.date} style={styles.weekDayItem}>
           <Text style={styles.weekDayLabel}>{day.label}</Text>
-
-          <View
+  <View
   style={[
     styles.weekDot,
     !day.hasTakes
@@ -577,7 +675,9 @@ return { date: dateString, label, hasTakes, completed, frozen }
         ? styles.weekDotDone
         : day.frozen
           ? styles.weekDotFrozen
-          : styles.weekDotMissed,
+          : day.isToday
+            ? styles.weekDotPending
+            : styles.weekDotMissed,
   ]}
 />
         </View>
@@ -652,7 +752,7 @@ weekDotFrozen: {
   backgroundColor: 'rgba(103, 232, 249, 0.85)',
 },
 confettiOverlay: {
-  ...StyleSheet.absoluteFillObject,
+  ...StyleSheet.absoluteFill,
   zIndex: 999,
   elevation: 999,
 },
@@ -752,9 +852,10 @@ quickActionsTitle: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flexWrap: 'wrap',
+    
   },
   greeting: {
+    flexShrink: 1,
     color: 'white',
     fontSize: 23,
     fontWeight: '900',
@@ -849,11 +950,16 @@ quickActionsTitle: {
     fontSize: 23,
     fontWeight: '900',
   },
+  sectionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   sectionAction: {
   color: '#7dd3fc',
   fontSize: 14,
   fontWeight: '900',
-  marginTop: 5,
+  
 },
   todayStatus: {
     color: '#cbd5e1',
@@ -874,7 +980,9 @@ quickActionsTitle: {
   fontSize: 13,
   fontWeight: '900',
 },
-
+weekDotPending: {
+  backgroundColor: '#7dd3fc',
+},
   loadingCard: {
     backgroundColor: '#101c34',
     borderRadius: 20,

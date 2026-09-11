@@ -19,13 +19,14 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 
 import { useAuth } from '../auth-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t, currentLanguage } from '@/i18n'
 
 const DEFAULT_BIRTH_DATE = new Date(1990, 0, 1)
 const MIN_BIRTH_DATE = new Date(1900, 0, 1)
 
 export default function RegisterScreen() {
   const router = useRouter()
-  const { register, checkEmailExists } = useAuth()
+  const { register } = useAuth()
   const { showAlert, AlertComponent } = useCustomAlert()
 
   const [firstName, setFirstName] = useState('')
@@ -75,32 +76,38 @@ export default function RegisterScreen() {
 
   const formatDate = (date: Date | null) => {
     if (!date) return ''
-    return `${date.getDate().toString().padStart(2, '0')}/${(
-      date.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, '0')}/${date.getFullYear()}`
+    return new Intl.DateTimeFormat(currentLanguage === 'pt' ? 'pt-PT' : 'en-US').format(date)
+  }
+
+  const formatDateForAuth = (date: Date | null) => {
+    if (!date) return undefined
+
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
   }
 
   const getPasswordStrengthLabel = () => {
     const score = passwordStrength.score
-    if (score <= 1) return { label: 'Fraca', color: '#ef4444' }
-    if (score === 2) return { label: 'Razoável', color: '#f59e0b' }
-    if (score === 3) return { label: 'Boa', color: '#eab308' }
-    if (score === 4) return { label: 'Forte', color: '#22c55e' }
-    return { label: 'Muito forte', color: '#10b981' }
+    if (score <= 1) return { label: t('register.weak'), color: '#ef4444' }
+    if (score === 2) return { label: t('register.fair'), color: '#f59e0b' }
+    if (score === 3) return { label: t('register.good'), color: '#eab308' }
+    if (score === 4) return { label: t('register.strong'), color: '#22c55e' }
+    return { label: t('register.veryStrong'), color: '#10b981' }
   }
 
   const handleRegister = async () => {
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password || !confirmPassword) {
-      showAlert('Erro', 'Por favor, preenche todos os campos obrigatórios.', [
+      showAlert(t('register.error'), t('register.fillRequired'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
     }
 
     if (password !== confirmPassword) {
-      showAlert('Erro', 'As passwords não coincidem.', [
+      showAlert(t('register.error'), t('register.passwordsMismatch'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -108,8 +115,8 @@ export default function RegisterScreen() {
 
     if (passwordStrength.score < 5) {
       showAlert(
-        'Password incompleta',
-        'A password deve ter pelo menos 8 caracteres, maiúscula, minúscula, número e caractere especial.',
+        t('register.incompletePassword'),
+        t('register.passwordRulesMessage'),
         [{ text: 'OK', onPress: () => {} }]
       )
       return
@@ -118,41 +125,31 @@ export default function RegisterScreen() {
     setIsLoading(true)
 
     try {
-      const emailExists = await checkEmailExists(email.trim())
-
-      if (emailExists) {
-        showAlert('Email já registado', 'Este email já está em uso. Queres fazer login?', [
-          { text: 'Não', style: 'cancel', onPress: () => {} },
-          { text: 'Sim', onPress: () => router.replace('/login-vitastreak' as any) },
-        ])
-        return
-      }
-
       await register(email.trim(), password, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        birthDate: birthDate ? formatDate(birthDate) : undefined,
+        birthDate: formatDateForAuth(birthDate),
       })
 
       showAlert(
-  'Conta criada',
-  'Enviámos um email de confirmação. Confirma o email antes de iniciar sessão.',
+  t('register.requestReceived'),
+  t('register.neutralConfirmationMessage'),
   [{ text: 'OK', onPress: () => router.replace('/login-vitastreak' as any) }]
 )
     } catch (error: any) {
       console.error('Erro de registo:', error)
 
-      let errorMessage = 'Não foi possível criar a conta.'
+      let errorMessage = t('register.createAccountError')
 
       if (error?.message?.includes('email-already-in-use')) {
-        errorMessage = 'Este email já está em uso.'
+        errorMessage = t('register.emailInUse')
       } else if (error?.message?.includes('invalid-email')) {
-        errorMessage = 'Email inválido.'
+        errorMessage = t('register.invalidEmail')
       } else if (error?.message?.includes('weak-password')) {
-        errorMessage = 'A password é muito fraca.'
+        errorMessage = t('register.weakPasswordError')
       }
 
-      showAlert('Erro de registo', errorMessage, [{ text: 'OK', onPress: () => {} }])
+      showAlert(t('register.registrationError'), errorMessage, [{ text: 'OK', onPress: () => {} }])
     } finally {
       setIsLoading(false)
     }
@@ -184,16 +181,16 @@ export default function RegisterScreen() {
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>Criar conta</Text>
+              <Text style={styles.title}>{t('register.title')}</Text>
               <Text style={styles.subtitle}>
-                Começa a acompanhar a tua rotina VitaStreak.
+                {t('register.subtitle')}
               </Text>
             </View>
 
             <View style={styles.card}>
               <TextInput
                 style={styles.input}
-                placeholder="Nome"
+                placeholder={t('register.firstName')}
                 placeholderTextColor="#94a3b8"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -201,7 +198,7 @@ export default function RegisterScreen() {
 
               <TextInput
                 style={styles.input}
-                placeholder="Sobrenome"
+                placeholder={t('register.lastName')}
                 placeholderTextColor="#94a3b8"
                 value={lastName}
                 onChangeText={setLastName}
@@ -212,7 +209,7 @@ export default function RegisterScreen() {
                 onPress={() => setShowDatePicker(true)}
               >
                 <Text style={birthDate ? styles.dateText : styles.placeholderText}>
-                  {birthDate ? formatDate(birthDate) : 'Data de nascimento (opcional)'}
+                  {birthDate ? formatDate(birthDate) : t('register.birthDateOptional')}
                 </Text>
                 <Ionicons name="calendar-outline" size={22} color="#94a3b8" />
               </TouchableOpacity>
@@ -224,7 +221,7 @@ export default function RegisterScreen() {
   display="default"
   minimumDate={MIN_BIRTH_DATE}
   maximumDate={new Date()}
-  onChange={(event, selectedDate) => {
+  onValueChange={(event, selectedDate) => {
     setShowDatePicker(false)
     if (selectedDate) setBirthDate(selectedDate)
   }}
@@ -233,7 +230,7 @@ export default function RegisterScreen() {
 
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t('register.email')}
                 placeholderTextColor="#94a3b8"
                 value={email}
                 onChangeText={setEmail}
@@ -244,7 +241,7 @@ export default function RegisterScreen() {
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Password"
+                  placeholder={t('register.password')}
                   placeholderTextColor="#94a3b8"
                   value={password}
                   onChangeText={setPassword}
@@ -296,20 +293,20 @@ export default function RegisterScreen() {
 
               {showPasswordRequirements && (
                 <View style={styles.requirementsContainer}>
-                  <Text style={styles.requirementsTitle}>A password deve conter:</Text>
+                  <Text style={styles.requirementsTitle}>{t('register.passwordMustContain')}</Text>
 
-                  <Requirement ok={passwordStrength.hasMinLength} text="Pelo menos 8 caracteres" />
-                  <Requirement ok={passwordStrength.hasUpperCase} text="Uma letra maiúscula" />
-                  <Requirement ok={passwordStrength.hasLowerCase} text="Uma letra minúscula" />
-                  <Requirement ok={passwordStrength.hasNumber} text="Um número" />
-                  <Requirement ok={passwordStrength.hasSpecialChar} text="Um caractere especial" />
+                  <Requirement ok={passwordStrength.hasMinLength} text={t('register.minCharacters')} />
+                  <Requirement ok={passwordStrength.hasUpperCase} text={t('register.uppercaseLetter')} />
+                  <Requirement ok={passwordStrength.hasLowerCase} text={t('register.lowercaseLetter')} />
+                  <Requirement ok={passwordStrength.hasNumber} text={t('register.number')} />
+                  <Requirement ok={passwordStrength.hasSpecialChar} text={t('register.specialCharacter')} />
                 </View>
               )}
 
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Confirmar password"
+                  placeholder={t('register.confirmPassword')}
                   placeholderTextColor="#94a3b8"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -336,7 +333,7 @@ export default function RegisterScreen() {
                 {isLoading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.buttonText}>Registar</Text>
+                  <Text style={styles.buttonText}>{t('register.signUp')}</Text>
                 )}
               </TouchableOpacity>
 
@@ -344,7 +341,7 @@ export default function RegisterScreen() {
                 style={styles.loginLink}
                 onPress={() => router.push('/login-vitastreak' as any)}
               >
-                <Text style={styles.loginText}>Já tens conta? Fazer login</Text>
+                <Text style={styles.loginText}>{t('register.alreadyHaveAccount')}</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAwareScrollView>

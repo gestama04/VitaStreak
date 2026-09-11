@@ -1,4 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import {
+  GoogleGenerativeAI,
+  type Part,
+} from '@google/generative-ai'
+
+type GeminiContentPart = string | Part
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,8 +14,9 @@ const corsHeaders = {
 const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY') ?? '')
 
 const GEMINI_MODELS = [
-  'gemini-3.1-flash-lite-preview',
-  'gemini-2.5-flash-lite',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash-lite',
   'gemini-2.5-flash',
 ]
 
@@ -24,7 +30,7 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-async function generateWithFallback(parts: any[]) {
+async function generateWithFallback(parts: GeminiContentPart[]) {
   let lastError: unknown = null
 
   for (const modelName of GEMINI_MODELS) {
@@ -65,7 +71,17 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { supplements } = await req.json()
+    const { supplements, language } = await req.json()
+
+const responseLanguage =
+  language === 'pt'
+    ? 'Portuguese from Portugal'
+    : 'English'
+
+const disclaimer =
+  language === 'pt'
+    ? 'Informação geral. Não substitui aconselhamento médico. Segue sempre a recomendação do teu profissional de saúde.'
+    : 'General information only. This does not replace medical advice. Always follow the guidance of your healthcare professional.'
 
     if (!Array.isArray(supplements)) {
       return jsonResponse({ error: 'supplements inválido' }, 400)
@@ -98,10 +114,11 @@ Regras:
 - Podes apontar doses que parecem merecer confirmação.
 - Podes comentar horários de forma geral.
 - Podes explicar benefícios gerais dos ingredientes.
-- Usa português de Portugal.
+- Write all user-facing text in ${responseLanguage}.
+- Keep all JSON property names exactly as specified.
 - Máximo 5 itens por lista.
-- O disclaimer deve dizer:
-"Informação geral. Não substitui aconselhamento médico. Segue sempre a recomendação do teu profissional de saúde."
+- The disclaimer must say exactly:
+"${disclaimer}"
 `
 
     const result = await generateWithFallback([prompt])
@@ -133,7 +150,7 @@ Regras:
       disclaimer:
         typeof parsed.disclaimer === 'string'
           ? parsed.disclaimer
-          : 'Informação geral. Não substitui aconselhamento médico. Segue sempre a recomendação do teu profissional de saúde.',
+          : disclaimer,
     })
   } catch (error) {
     console.error('REVIEW_ROUTINE_ERROR:', error)

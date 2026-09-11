@@ -2,6 +2,12 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { Appearance, ColorSchemeName } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+function normalizeColorScheme(
+  colorScheme: ColorSchemeName | null | undefined
+): 'light' | 'dark' {
+  return colorScheme === 'dark' ? 'dark' : 'light'
+}
+
 // Tipos de tema
 export type Theme = "light" | "dark" | "system";
 
@@ -40,8 +46,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   // Atualiza o tema com base no sistema ou no estado escolhido
   const updateTheme = async (selectedTheme: Theme) => {
     if (selectedTheme === "system") {
-      const systemTheme = Appearance.getColorScheme() || "light";
-      setCurrentTheme(systemTheme);
+      const systemTheme = normalizeColorScheme(Appearance.getColorScheme())
+setCurrentTheme(systemTheme)
     } else {
       setCurrentTheme(selectedTheme);
     }
@@ -63,7 +69,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // Listener para mudanças no tema do sistema
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
       if (theme === "system") {
-        setCurrentTheme(colorScheme || "light");
+        setCurrentTheme(normalizeColorScheme(colorScheme))
       }
     });
 

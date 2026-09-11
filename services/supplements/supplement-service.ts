@@ -54,6 +54,8 @@ if (notificationIds.length > 0) {
 
   data.notification_ids = notificationIds
 }
+await refreshTodayDayStatus(user.id)
+
   return data as Supplement
 }
 
@@ -200,6 +202,33 @@ export async function getTodaySupplements() {
   .sort((a, b) => a.reminder_time.localeCompare(b.reminder_time)) as TodaySupplement[]
 }
 
+export async function getTodayDoseSummary() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Utilizador não autenticado')
+
+  const today = getDateString()
+
+  const [{ count, error: countError }, activeToday] = await Promise.all([
+    supabase
+      .from('supplement_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('taken_date', today)
+      .eq('status', 'taken'),
+    getTodaySupplements(),
+  ])
+
+  if (countError) throw countError
+
+  return {
+    completed: count ?? 0,
+    pending: activeToday.filter((item) => !item.taken_today).length,
+  }
+}
+
 export async function markSupplementTaken(
   supplementId: string,
   reminderTime: string
@@ -212,14 +241,26 @@ export async function markSupplementTaken(
 
   const today = getDateString()
 
+  const { data: supplement, error: supplementError } = await supabase
+    .from('supplements')
+    .select('name, brand, photo_url')
+    .eq('id', supplementId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (supplementError) throw supplementError
+
   const { data, error } = await supabase
     .from('supplement_logs')
     .upsert(
       {
         user_id: user.id,
         supplement_id: supplementId,
+        supplement_name: supplement.name,
+        supplement_brand: supplement.brand,
+        supplement_photo_url: supplement.photo_url,
         taken_date: today,
-        reminder_time: reminderTime,
+        reminder_time: normalizeTime(reminderTime),
         status: 'taken',
         taken_at: new Date().toISOString(),
       },
@@ -246,6 +287,7 @@ export async function unmarkSupplementTaken(
   if (!user) throw new Error('Utilizador não autenticado')
 
   const today = getDateString()
+  const normalizedReminderTime = normalizeTime(reminderTime)
 
   const { error } = await supabase
     .from('supplement_logs')
@@ -253,16 +295,11 @@ export async function unmarkSupplementTaken(
     .eq('user_id', user.id)
     .eq('supplement_id', supplementId)
     .eq('taken_date', today)
-    .eq('reminder_time', reminderTime)
+    .eq('reminder_time', normalizedReminderTime)
 
   if (error) throw error
-  const { error: dayStatusError } = await supabase
-  .from('supplement_day_status')
-  .delete()
-  .eq('user_id', user.id)
-  .eq('date', today)
 
-if (dayStatusError) throw dayStatusError
+  await refreshTodayDayStatus(user.id)
 }
 
 export async function deleteSupplement(supplementId: string) {
@@ -292,6 +329,7 @@ export async function deleteSupplement(supplementId: string) {
   if (error) {
     throw error
   }
+  await refreshTodayDayStatus(user.id)
 }
 
 export async function getSupplementById(id: string) {
@@ -379,6 +417,8 @@ console.log('[SUPP_SERVICE] UPDATE_NEW_NOTIFICATION_IDS', notificationIds)
 
   data.notification_ids = notificationIds
 
+  await refreshTodayDayStatus(user.id)
+
   return data as Supplement
 }
 
@@ -388,6 +428,8 @@ export async function getSupplementStreak() {
   } = await supabase.auth.getUser()
 
   if (!user) throw new Error('Utilizador não autenticado')
+
+  await refreshTodayDayStatus(user.id)
 
   const { data, error } = await supabase
     .from('supplement_day_status')
@@ -535,20 +577,45 @@ export async function getSupplementHistory(days = 30) {
 }
 export type SupplementHistoryTake = {
   id: string
-  supplement_id: string
+  supplement_id: string | null
   taken_date: string
   reminder_time: string
+  taken_at: string | null
   taken: boolean
+  deleted: boolean
   supplement: {
-    name: string
-    brand?: string | null
-    photo_url?: string | null
+    name: string | null
+    brand: string | null
+    photo_url: string | null
   }
 }
 
 export type SupplementHistoryDay = {
   date: string
   takes: SupplementHistoryTake[]
+}
+
+type SupplementHistoryRow = {
+  id: string
+  supplement_id: string | null
+  taken_date: string
+  reminder_time: string | null
+  taken_at: string | null
+  supplement_name: string | null
+  supplement_brand: string | null
+  supplement_photo_url: string | null
+  supplement:
+    | {
+        name: string | null
+        brand: string | null
+        photo_url: string | null
+      }
+    | Array<{
+        name: string | null
+        brand: string | null
+        photo_url: string | null
+      }>
+    | null
 }
 
 export async function getSupplementHistoryDays(days = 30) {
@@ -573,6 +640,9 @@ export async function getSupplementHistoryDays(days = 30) {
       reminder_time,
       status,
       taken_at,
+      supplement_name,
+      supplement_brand,
+      supplement_photo_url,
       supplement:supplements (
         name,
         brand,
@@ -583,31 +653,32 @@ export async function getSupplementHistoryDays(days = 30) {
     .eq('status', 'taken')
     .gte('taken_date', from)
     .order('taken_date', { ascending: false })
-    .order('reminder_time', { ascending: true })
+    .order('taken_at', { ascending: true })
 
   if (logsError) throw logsError
 
   const grouped: Record<string, SupplementHistoryTake[]> = {}
 
-  for (const log of logs || []) {
-    const supplement = Array.isArray((log as any).supplement)
-      ? (log as any).supplement[0] ?? null
-      : (log as any).supplement ?? null
+  for (const rawLog of logs || []) {
+    const log = rawLog as SupplementHistoryRow
+    const relatedSupplement = Array.isArray(log.supplement)
+      ? log.supplement[0] ?? null
+      : log.supplement
 
-    if (!grouped[(log as any).taken_date]) {
-      grouped[(log as any).taken_date] = []
-    }
+    if (!grouped[log.taken_date]) grouped[log.taken_date] = []
 
-    grouped[(log as any).taken_date].push({
-      id: (log as any).id,
-      supplement_id: (log as any).supplement_id,
-      taken_date: (log as any).taken_date,
-      reminder_time: normalizeTime((log as any).reminder_time),
+    grouped[log.taken_date].push({
+      id: log.id,
+      supplement_id: log.supplement_id,
+      taken_date: log.taken_date,
+      reminder_time: normalizeTime(log.reminder_time),
+      taken_at: log.taken_at,
       taken: true,
+      deleted: log.supplement_id === null,
       supplement: {
-        name: supplement?.name ?? 'Suplemento',
-        brand: supplement?.brand ?? null,
-        photo_url: supplement?.photo_url ?? null,
+        name: log.supplement_name ?? relatedSupplement?.name ?? null,
+        brand: log.supplement_brand ?? relatedSupplement?.brand ?? null,
+        photo_url: log.supplement_photo_url ?? relatedSupplement?.photo_url ?? null,
       },
     })
   }
@@ -634,9 +705,10 @@ async function refreshTodayDayStatus(userId: string) {
 
   const { data: logs, error: logsError } = await supabase
     .from('supplement_logs')
-    .select('supplement_id, taken_date, reminder_time')
+    .select('supplement_id, taken_date, reminder_time, status')
     .eq('user_id', userId)
     .eq('taken_date', today)
+    .eq('status', 'taken')
 
   if (logsError) throw logsError
 
@@ -651,7 +723,16 @@ async function refreshTodayDayStatus(userId: string) {
       }))
     )
 
-  if (expectedTakes.length === 0) return
+  if (expectedTakes.length === 0) {
+    const { error: deleteError } = await supabase
+      .from('supplement_day_status')
+      .delete()
+      .eq('user_id', userId)
+      .eq('date', today)
+
+    if (deleteError) throw deleteError
+    return
+  }
 
   const logsSet = new Set(
     (logs || []).map(
@@ -664,26 +745,22 @@ async function refreshTodayDayStatus(userId: string) {
     logsSet.has(`${take.supplement_id}-${take.reminder_time}`)
   )
 
-  if (!completed) {
-  await supabase
+  const nowIso = new Date().toISOString()
+
+  const { error } = await supabase
     .from('supplement_day_status')
-    .delete()
-    .eq('user_id', userId)
-    .eq('date', today)
-
-  return
-}
-
-  const { error } = await supabase.from('supplement_day_status').upsert(
-    {
-      user_id: userId,
-      date: today,
-      completed: true,
-      completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,date' }
-  )
+    .upsert(
+      {
+        user_id: userId,
+        date: today,
+        completed,
+        completed_at: completed ? nowIso : null,
+        updated_at: nowIso,
+      },
+      {
+        onConflict: 'user_id,date',
+      }
+    )
 
   if (error) throw error
 }

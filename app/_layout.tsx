@@ -1,10 +1,11 @@
 import { Stack } from 'expo-router'
-import { ThemeProvider, useTheme } from './theme-context'
+import { ThemeProvider, useTheme } from '@/contexts/theme-context'
+import { LanguageProvider } from '@/contexts/language-context'
 import { View, StyleSheet, StatusBar, Platform } from 'react-native'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
 import { AuthProvider } from '../auth-context'
-import * as Notifications from 'expo-notifications'
+import { isRunningInExpoGo } from 'expo'
 import { useRouter } from 'expo-router'
 
 SplashScreen.preventAutoHideAsync()
@@ -39,36 +40,76 @@ function AppLayout() {
   }, [appIsReady])
 
   useEffect(() => {
-    if (!appIsReady) return
+  if (!appIsReady || isRunningInExpoGo()) {
+    return
+  }
 
-    const foregroundSubscription =
-      Notifications.addNotificationReceivedListener((notification) => {
-        console.log('Notificação recebida:', notification)
-      })
+  let foregroundSubscription:
+    | { remove: () => void }
+    | undefined
 
-    const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log('Resposta de notificação:', response)
+  let responseSubscription:
+    | { remove: () => void }
+    | undefined
 
-        const data = response.notification.request.content.data
+  const configureNotifications = async () => {
+    const Notifications = await import('expo-notifications')
 
-        if (data?.type === 'supplement-reminder' || data?.screen === 'today') {
-  router.push('/today' as any)
-}
-
-        if (data?.screen === 'supplement-details' && data?.supplementId) {
-          router.push({
-            pathname: '/supplement-details',
-            params: { id: String(data.supplementId) },
-          } as any)
+    foregroundSubscription =
+      Notifications.addNotificationReceivedListener(
+        (notification) => {
+          console.log(
+            'Notificação recebida:',
+            notification
+          )
         }
-      })
+      )
 
-    return () => {
-      foregroundSubscription.remove()
-      responseSubscription.remove()
-    }
-  }, [router, appIsReady])
+    responseSubscription =
+      Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          console.log(
+            'Resposta de notificação:',
+            response
+          )
+
+          const data =
+            response.notification.request.content.data
+
+          if (
+            data?.type === 'supplement-reminder' ||
+            data?.screen === 'today'
+          ) {
+            router.push('/today' as any)
+          }
+
+          if (
+            data?.screen === 'supplement-details' &&
+            data?.supplementId
+          ) {
+            router.push({
+              pathname: '/supplement-details',
+              params: {
+                id: String(data.supplementId),
+              },
+            } as any)
+          }
+        }
+      )
+  }
+
+  configureNotifications().catch((error) => {
+    console.warn(
+      'Não foi possível configurar notificações:',
+      error
+    )
+  })
+
+  return () => {
+    foregroundSubscription?.remove()
+    responseSubscription?.remove()
+  }
+}, [router, appIsReady])
 
   useEffect(() => {
   StatusBar.setBarStyle(
@@ -121,11 +162,13 @@ function AppLayout() {
 
 export default function Layout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppLayout />
-      </AuthProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }
 

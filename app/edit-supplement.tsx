@@ -27,6 +27,7 @@ import {
 import { analyzeSupplementLabel } from '../services/supplements/gemini-supplement-service'
 import { getSupplementSuggestion } from '../services/supplements/supplement-suggestions'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear()
@@ -155,7 +156,7 @@ setIntervalDays(String(supplement.interval_days ?? 2))
         setActiveIngredients(supplement.active_ingredients ?? [])
       } catch (error) {
         console.error('Erro ao carregar suplemento:', error)
-        showAlert('Erro', 'Não foi possível carregar o suplemento.', [
+        showAlert(t('addSupplement.error'), t('editSupplement.loadError'), [
           { text: 'OK', onPress: () => router.back() },
         ])
       } finally {
@@ -212,6 +213,7 @@ setIntervalDays(String(supplement.interval_days ?? 2))
       const suggestion = getSupplementSuggestion({
         name: analysis.name ?? '',
         mainIngredient: analysis.mainIngredient ?? '',
+        activeIngredients: analysis.activeIngredients,
         dosageAmount: analysis.dosageAmount,
         dosageUnit: analysis.dosageUnit,
       })
@@ -222,7 +224,7 @@ setReminderTimes((current) =>
 )
 
       showAlert(
-        'Sugestão de rotina',
+        t('addSupplement.routineSuggestion'),
         suggestion.caution
           ? `${suggestion.note}\n\n${suggestion.caution}`
           : suggestion.note,
@@ -231,14 +233,14 @@ setReminderTimes((current) =>
 
       if (analysis.confidence < 0.7) {
         showAlert(
-          'Confirmação recomendada',
-          'A IA não teve muita confiança. Confirma os campos manualmente.',
+          t('addSupplement.confirmationRecommended'),
+          t('addSupplement.lowConfidence'),
           [{ text: 'OK', onPress: () => {} }]
         )
       }
     } catch (error) {
       console.error('Erro ao analisar imagem:', error)
-      showAlert('Erro', 'Não foi possível analisar a imagem.', [
+      showAlert(t('addSupplement.error'), t('addSupplement.analysisError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -250,14 +252,14 @@ setReminderTimes((current) =>
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
 
     if (status !== 'granted') {
-      showAlert('Permissão necessária', 'É necessário acesso à galeria.', [
+      showAlert(t('addSupplement.permissionRequired'), t('addSupplement.galleryPermission'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -272,7 +274,7 @@ setReminderTimes((current) =>
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
 
     if (status !== 'granted') {
-      showAlert('Permissão necessária', 'É necessário acesso à câmara.', [
+      showAlert(t('addSupplement.permissionRequired'), t('addSupplement.cameraPermission'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -309,7 +311,7 @@ const toggleDay = (day: number) => {
     if (!id) return
 
     if (!name.trim()) {
-      showAlert('Nome em falta', 'Insere pelo menos o nome do suplemento.', [
+      showAlert(t('addSupplement.missingName'), t('addSupplement.missingNameMessage'), [
         { text: 'OK', onPress: () => {} },
       ])
       return
@@ -317,14 +319,14 @@ const toggleDay = (day: number) => {
   const cleanedReminderTimes = reminderTimes.filter(Boolean)
 
 if (cleanedReminderTimes.length === 0) {
-  showAlert('Hora em falta', 'Escolhe pelo menos uma hora de lembrete.', [
+  showAlert(t('addSupplement.missingTime'), t('addSupplement.missingTimeMessage'), [
     { text: 'OK', onPress: () => {} },
   ])
   return
 }
 
 if (frequencyType === 'specific_days' && daysOfWeek.length === 0) {
-  showAlert('Dias em falta', 'Escolhe pelo menos um dia da semana.', [
+  showAlert(t('addSupplement.missingDays'), t('addSupplement.missingDaysMessage'), [
     { text: 'OK', onPress: () => {} },
   ])
   return
@@ -373,7 +375,7 @@ is_active: true,
 }
     } catch (error) {
       console.error('Erro ao atualizar suplemento:', error)
-      showAlert('Erro', 'Não foi possível atualizar o suplemento.', [
+      showAlert(t('addSupplement.error'), t('editSupplement.updateError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -392,7 +394,7 @@ is_active: true,
           style={styles.loadingContainer}
         >
           <ActivityIndicator color="#22c55e" size="large" />
-          <Text style={styles.loadingText}>A carregar suplemento...</Text>
+          <Text style={styles.loadingText}>{t('editSupplement.loading')}</Text>
           <AlertComponent />
         </LinearGradient>
       </>
@@ -423,9 +425,9 @@ is_active: true,
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Editar Suplemento</Text>
+              <Text style={styles.title}>{t('editSupplement.title')}</Text>
               <Text style={styles.subtitle}>
-                Atualiza os dados, muda a foto ou volta a analisar o rótulo.
+                {t('editSupplement.subtitle')}
               </Text>
             </View>
           </View>
@@ -439,9 +441,9 @@ is_active: true,
               />
 
               <View style={{ flex: 1 }}>
-                <Text style={styles.aiTitle}>Nova análise inteligente</Text>
+                <Text style={styles.aiTitle}>{t('editSupplement.newAnalysis')}</Text>
                 <Text style={styles.aiSubtitle}>
-                  Tira uma nova foto ao rótulo para substituir os dados atuais.
+                  {t('editSupplement.newAnalysisDescription')}
                 </Text>
               </View>
             </View>
@@ -456,7 +458,7 @@ is_active: true,
               ) : (
                 <>
                   <Ionicons name="camera-outline" size={22} color="white" />
-                  <Text style={styles.aiButtonText}>Tirar nova foto e analisar</Text>
+                  <Text style={styles.aiButtonText}>{t('editSupplement.takeNewPhoto')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -467,7 +469,7 @@ is_active: true,
               disabled={analyzing}
             >
               <Ionicons name="image-outline" size={22} color="white" />
-              <Text style={styles.secondaryButtonText}>Escolher nova imagem</Text>
+              <Text style={styles.secondaryButtonText}>{t('editSupplement.chooseNewImage')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -483,14 +485,14 @@ is_active: true,
           {confidence !== null ? (
             <View style={styles.confidenceBox}>
               <Text style={styles.confidenceText}>
-                Confiança IA: {Math.round(confidence * 100)}%
+                {t('addSupplement.aiConfidence', { value: Math.round(confidence * 100) })}
               </Text>
             </View>
           ) : null}
 
           {activeIngredients.length > 0 ? (
             <View style={styles.ingredientsBox}>
-              <Text style={styles.ingredientsTitle}>Ingredientes detetados</Text>
+              <Text style={styles.ingredientsTitle}>{t('addSupplement.detectedIngredients')}</Text>
 
               {activeIngredients.map((ingredient, index) => (
                 <Text
@@ -506,11 +508,11 @@ is_active: true,
           ) : null}
 
           <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>Dados do suplemento</Text>
+            <Text style={styles.sectionTitle}>{t('addSupplement.supplementData')}</Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Nome"
+              placeholder={t('addSupplement.name')}
               placeholderTextColor="#94a3b8"
               value={name}
               onChangeText={setName}
@@ -518,7 +520,7 @@ is_active: true,
 
             <TextInput
               style={styles.input}
-              placeholder="Marca"
+              placeholder={t('addSupplement.brand')}
               placeholderTextColor="#94a3b8"
               value={brand}
               onChangeText={setBrand}
@@ -526,7 +528,7 @@ is_active: true,
 
             <TextInput
               style={styles.input}
-              placeholder="Ingrediente principal"
+              placeholder={t('addSupplement.mainIngredient')}
               placeholderTextColor="#94a3b8"
               value={mainIngredient}
               onChangeText={setMainIngredient}
@@ -535,7 +537,7 @@ is_active: true,
             <View style={styles.row}>
               <TextInput
                 style={[styles.input, styles.rowInput]}
-                placeholder="Dosagem"
+                placeholder={t('addSupplement.dosage')}
                 placeholderTextColor="#94a3b8"
                 value={dosageAmount}
                 onChangeText={setDosageAmount}
@@ -544,7 +546,7 @@ is_active: true,
 
               <TextInput
                 style={[styles.input, styles.rowInput]}
-                placeholder="Unidade"
+                placeholder={t('addSupplement.unit')}
                 placeholderTextColor="#94a3b8"
                 value={dosageUnit}
                 onChangeText={setDosageUnit}
@@ -553,21 +555,21 @@ is_active: true,
 
             <TextInput
               style={styles.input}
-              placeholder="Tamanho da toma"
+              placeholder={t('addSupplement.servingSize')}
               placeholderTextColor="#94a3b8"
               value={servingSize}
               onChangeText={setServingSize}
             />
 
             <View style={styles.routineBox}>
-  <Text style={styles.routineTitle}>Rotina</Text>
+  <Text style={styles.routineTitle}>{t('addSupplement.routine')}</Text>
 
   <View style={styles.optionGrid}>
     {[
-  { label: 'Todos os dias', value: 'daily' },
-  { label: 'Dias específicos', value: 'specific_days' },
-  { label: 'Dia sim / dia não', value: 'every_other_day' },
-  { label: 'Personalizado', value: 'custom_interval' },
+  { label: t('addSupplement.everyDay'), value: 'daily' },
+  { label: t('addSupplement.specificDays'), value: 'specific_days' },
+  { label: t('addSupplement.everyOtherDay'), value: 'every_other_day' },
+  { label: t('addSupplement.custom'), value: 'custom_interval' },
 ].map((option) => (
       <TouchableOpacity
         key={option.value}
@@ -592,13 +594,13 @@ is_active: true,
   {frequencyType === 'specific_days' ? (
     <View style={styles.daysRow}>
       {[
-        { label: 'D', value: 0 },
-        { label: 'S', value: 1 },
-        { label: 'T', value: 2 },
-        { label: 'Q', value: 3 },
-        { label: 'Q', value: 4 },
-        { label: 'S', value: 5 },
-        { label: 'S', value: 6 },
+        { label: t('addSupplement.sundayShort'), value: 0 },
+        { label: t('addSupplement.mondayShort'), value: 1 },
+        { label: t('addSupplement.tuesdayShort'), value: 2 },
+        { label: t('addSupplement.wednesdayShort'), value: 3 },
+        { label: t('addSupplement.thursdayShort'), value: 4 },
+        { label: t('addSupplement.fridayShort'), value: 5 },
+        { label: t('addSupplement.saturdayShort'), value: 6 },
       ].map((day) => (
         <TouchableOpacity
           key={day.value}
@@ -624,7 +626,7 @@ is_active: true,
   {frequencyType === 'custom_interval' ? (
     <TextInput
       style={styles.input}
-      placeholder="Intervalo em dias. Ex: 3"
+      placeholder={t('addSupplement.intervalDays')}
       placeholderTextColor="#94a3b8"
       value={intervalDays}
       onChangeText={setIntervalDays}
@@ -633,16 +635,16 @@ is_active: true,
   ) : null}
 
   <View style={styles.timesHeader}>
-    <Text style={styles.timesTitle}>Horas das tomas</Text>
+    <Text style={styles.timesTitle}>{t('addSupplement.doseTimes')}</Text>
 
     <TouchableOpacity style={styles.smallAddButton} onPress={addReminderTime}>
       <Ionicons name="add" size={18} color="white" />
-      <Text style={styles.smallAddButtonText}>Adicionar</Text>
+      <Text style={styles.smallAddButtonText}>{t('addSupplement.add')}</Text>
     </TouchableOpacity>
   </View>
 
   {reminderTimes.length === 0 ? (
-    <Text style={styles.emptyTimesText}>Adiciona pelo menos uma hora.</Text>
+    <Text style={styles.emptyTimesText}>{t('addSupplement.addAtLeastOneTime')}</Text>
   ) : null}
 
   {reminderTimes.map((time, index) => (
@@ -656,7 +658,7 @@ is_active: true,
       >
         <Ionicons name="time-outline" size={20} color="#94a3b8" />
         <Text style={[styles.timeButtonText, !time && styles.timePlaceholder]}>
-          {time || `Escolher hora ${index + 1}`}
+          {time || t('addSupplement.chooseTime', { number: index + 1 })}
         </Text>
       </TouchableOpacity>
 
@@ -684,14 +686,14 @@ is_active: true,
       mode="time"
       display="default"
       is24Hour
-      onChange={handleTimeChange}
+      onValueChange={handleTimeChange}
     />
   ) : null}
 </View>
 
             <TextInput
               style={styles.input}
-              placeholder="Quantidade na embalagem"
+              placeholder={t('addSupplement.containerQuantity')}
               placeholderTextColor="#94a3b8"
               value={containerQuantity}
               onChangeText={setContainerQuantity}
@@ -700,7 +702,7 @@ is_active: true,
 
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Instruções do rótulo"
+              placeholder={t('addSupplement.labelInstructions')}
               placeholderTextColor="#94a3b8"
               value={instructions}
               onChangeText={setInstructions}
@@ -715,7 +717,7 @@ is_active: true,
               {saving ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.saveButtonText}>Guardar alterações</Text>
+                <Text style={styles.saveButtonText}>{t('editSupplement.saveChanges')}</Text>
               )}
             </TouchableOpacity>
           </View>

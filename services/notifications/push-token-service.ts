@@ -1,14 +1,23 @@
 import * as Device from 'expo-device'
-import * as Notifications from 'expo-notifications'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
+import { isRunningInExpoGo } from 'expo'
 import { supabase } from '../../supabase-config'
 
 export async function registerPushToken() {
+  if (isRunningInExpoGo()) {
+    console.log(
+      '[PUSH_TOKEN] Registo de push remoto ignorado no Expo Go'
+    )
+    return null
+  }
+
   if (!Device.isDevice) {
     console.log('[PUSH_TOKEN] Só funciona em dispositivo físico')
     return null
   }
+
+  const Notifications = await import('expo-notifications')
 
   const {
     data: { user },
@@ -19,11 +28,15 @@ export async function registerPushToken() {
     return null
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync()
+  const { status: existingStatus } =
+    await Notifications.getPermissionsAsync()
+
   let finalStatus = existingStatus
 
   if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync()
+    const { status } =
+      await Notifications.requestPermissionsAsync()
+
     finalStatus = status
   }
 
@@ -40,7 +53,8 @@ export async function registerPushToken() {
       vibrationPattern: [0, 250, 250, 250],
       enableVibrate: true,
       lightColor: '#22c55e',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      lockscreenVisibility:
+        Notifications.AndroidNotificationVisibility.PUBLIC,
     })
   }
 
@@ -52,23 +66,26 @@ export async function registerPushToken() {
     throw new Error('EAS projectId em falta')
   }
 
-  const tokenResult = await Notifications.getExpoPushTokenAsync({
-    projectId,
-  })
+  const tokenResult =
+    await Notifications.getExpoPushTokenAsync({
+      projectId,
+    })
 
   const token = tokenResult.data
 
-  const { error } = await supabase.from('push_tokens').upsert(
-    {
-      user_id: user.id,
-      token,
-      platform: Platform.OS,
-      updated_at: new Date().toISOString(),
-    },
-    {
-      onConflict: 'user_id,token',
-    }
-  )
+  const { error } = await supabase
+    .from('push_tokens')
+    .upsert(
+      {
+        user_id: user.id,
+        token,
+        platform: Platform.OS,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'user_id,token',
+      }
+    )
 
   if (error) throw error
 

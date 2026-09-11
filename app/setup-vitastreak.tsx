@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ScrollView,
   Switch,
@@ -14,8 +14,10 @@ import {
   Image,
 } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { useTheme } from '../app/theme-context'
+import { isRunningInExpoGo } from 'expo'
+import { useTheme } from '@/contexts/theme-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 
 interface InitialSetupScreenProps {
   onComplete: () => void
@@ -30,30 +32,67 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
   const [isLoading, setIsLoading] = useState(false)
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
-  const handleSaveSettings = async () => {
-  if (!acceptedLegal) {
-    showAlert(
-      'Aceitação necessária',
-      'Tens de aceitar a Política de Privacidade e os Termos de Utilização para continuar.',
-      [{ text: 'OK', onPress: () => {} }]
-    )
-    return
+  const handleContinueToWidget = () => {
+    if (!acceptedLegal) {
+      showAlert(
+        t('setup.acceptanceRequired'),
+        t('setup.acceptanceMessage'),
+        [{ text: 'OK', onPress: () => {} }]
+      )
+      return
+    }
+
+    setCurrentStep(3)
   }
 
-  setIsLoading(true)
-
-  try {
-      showAlert(
-        'Configuração completa!',
-        'O VitaStreak está pronto. Podes adicionar suplementos, definir horários e receber lembretes.',
-        [{ text: 'Continuar', onPress: onComplete }]
-      )
-    } catch (error) {
-      console.error('Erro no setup:', error)
+  const handleAddWidget = async () => {
+    if (Platform.OS !== 'android') {
       onComplete()
+      return
+    }
+
+    if (isRunningInExpoGo()) {
+      showAlert(
+        t('setup.widgetUnavailableTitle'),
+        t('setup.widgetUnavailableMessage'),
+        [{ text: t('setup.continue'), onPress: onComplete }]
+      )
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const { requestVitaStreakWidgetPin } = await import(
+        '../widgets/vita-streak-widget-service'
+      )
+
+      const requestAccepted = await requestVitaStreakWidgetPin()
+
+      if (!requestAccepted) {
+        showAlert(
+          t('setup.widgetManualTitle'),
+          t('setup.widgetManualMessage'),
+          [{ text: t('setup.continue'), onPress: onComplete }]
+        )
+        return
+      }
+
+      onComplete()
+    } catch (error) {
+      console.error('[VitaStreakWidget] Erro no pedido do widget:', error)
+      showAlert(
+        t('setup.widgetErrorTitle'),
+        t('setup.widgetErrorMessage'),
+        [{ text: t('setup.continue'), onPress: onComplete }]
+      )
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSkipWidget = () => {
+    onComplete()
   }
 
   const renderWelcomeSlide = () => (
@@ -66,11 +105,11 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
         />
 
         <Text style={[styles.title, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Configurar VitaStreak
+          {t('setup.screenTitle')}
         </Text>
 
         <Text style={[styles.subtitle, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Vamos preparar a tua rotina em 2 passos simples.
+          {t('setup.screenSubtitle')}
         </Text>
       </View>
 
@@ -78,39 +117,39 @@ export default function InitialSetupScreen({ onComplete }: InitialSetupScreenPro
         <MaterialCommunityIcons name="pill" size={78} color="#7c3aed" />
 
         <Text style={[styles.welcomeTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Bem-vindo!
+          {t('setup.welcome')}
         </Text>
 
         <Text style={[styles.welcomeDescription, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Configura lembretes, acompanha as tomas diárias e mantém a tua rotina de suplementos em dia.
+          {t('setup.welcomeDescription')}
         </Text>
 
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="calendar-check" size={24} color="#22c55e" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Rotina diária
+              {t('setup.dailyRoutine')}
             </Text>
           </View>
 
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="bell-ring" size={24} color="#f59e0b" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Lembretes personalizados
+              {t('setup.customReminders')}
             </Text>
           </View>
 
           <View style={styles.featureItem}>
             <MaterialCommunityIcons name="robot-outline" size={24} color="#38bdf8" />
             <Text style={[styles.featureText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Análise por IA
+              {t('setup.aiAnalysis')}
             </Text>
           </View>
         </View>
       </View>
 
       <TouchableOpacity style={styles.nextButton} onPress={() => setCurrentStep(2)}>
-        <Text style={styles.nextButtonText}>Começar configuração</Text>
+        <Text style={styles.nextButtonText}>{t('setup.startSetup')}</Text>
         <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
       </TouchableOpacity>
     </View>
@@ -131,10 +170,10 @@ const renderNotificationSettings = () => (
     <View>
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <View style={[styles.progressFill, styles.progressFillStepTwo]} />
         </View>
         <Text style={[styles.progressText, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Passo 2 de 2
+          {t('setup.stepTwo')}
         </Text>
       </View>
 
@@ -142,11 +181,11 @@ const renderNotificationSettings = () => (
         <MaterialCommunityIcons name="bell-ring" size={70} color="#7c3aed" />
 
         <Text style={[styles.stepTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-          Notificações
+          {t('setup.notifications')}
         </Text>
 
         <Text style={[styles.stepDescription, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-          Recebe lembretes à hora definida em cada suplemento.
+          {t('setup.notificationsDescription')}
         </Text>
       </View>
 
@@ -154,10 +193,10 @@ const renderNotificationSettings = () => (
         <View style={styles.settingRow}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.settingLabel, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>
-              Ativar lembretes
+              {t('setup.enableReminders')}
             </Text>
             <Text style={[styles.settingHelper, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-              Podes alterar isto mais tarde nas definições.
+              {t('setup.changeLater')}
             </Text>
           </View>
 
@@ -171,7 +210,7 @@ const renderNotificationSettings = () => (
 
         <View style={styles.legalBox}>
           <TouchableOpacity onPress={() => router.push('/legal-vitastreak' as any)}>
-            <Text style={styles.legalLink}>Ver Política de Privacidade e Termos</Text>
+            <Text style={styles.legalLink}>{t('setup.viewLegal')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.legalRow}
@@ -184,7 +223,7 @@ const renderNotificationSettings = () => (
             </View>
 
             <Text style={[styles.legalText, currentTheme === 'dark' ? styles.darkTextSecondary : styles.lightTextSecondary]}>
-              Li e aceito a Política de Privacidade e os Termos de Utilização.
+              {t('setup.acceptLegal')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -192,7 +231,7 @@ const renderNotificationSettings = () => (
         <View style={styles.infoBox}>
           <MaterialCommunityIcons name="clock-outline" size={22} color="#38bdf8" />
           <Text style={styles.infoText}>
-            Ao adicionares um suplemento, escolhes a hora e os dias da semana.
+            {t('setup.scheduleInfo')}
           </Text>
         </View>
         {Platform.OS === 'android' ? (
@@ -200,11 +239,11 @@ const renderNotificationSettings = () => (
     <MaterialCommunityIcons name="battery-heart" size={22} color="#facc15" />
     <View style={{ flex: 1 }}>
       <Text style={styles.infoText}>
-        Para lembretes mais fiáveis, recomendamos definir a bateria como “Sem restrições”.
+        {t('setup.batteryInfo')}
       </Text>
 
       <TouchableOpacity style={styles.batteryButton} onPress={openBatterySettings}>
-        <Text style={styles.batteryButtonText}>Melhorar notificações</Text>
+        <Text style={styles.batteryButtonText}>{t('setup.improveNotifications')}</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -215,20 +254,157 @@ const renderNotificationSettings = () => (
       <View style={styles.stepButtons}>
         <TouchableOpacity style={styles.backButton} onPress={() => setCurrentStep(1)}>
           <MaterialCommunityIcons name="arrow-left" size={20} color="#7c3aed" />
-          <Text style={styles.backButtonText}>Voltar</Text>
+          <Text style={styles.backButtonText}>{t('setup.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.finishButton, isLoading && styles.disabledButton]}
-          onPress={handleSaveSettings}
+          onPress={handleContinueToWidget}
           disabled={isLoading}
         >
           <Text style={styles.finishButtonText}>
-            {isLoading ? 'A guardar...' : 'Concluir'}
+            {t('setup.continue')}
           </Text>
-          <MaterialCommunityIcons name="check" size={20} color="#fff" />
+          <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+    </View>
+  </View>
+)
+
+
+const renderWidgetStep = () => (
+  <View style={styles.slideContainer}>
+    <View>
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, styles.progressFillComplete]} />
+        </View>
+        <Text
+          style={[
+            styles.progressText,
+            currentTheme === 'dark'
+              ? styles.darkTextSecondary
+              : styles.lightTextSecondary,
+          ]}
+        >
+          {t('setup.stepThree')}
+        </Text>
+      </View>
+
+      <View style={styles.stepHeader}>
+        <MaterialCommunityIcons
+          name="widgets-outline"
+          size={70}
+          color="#7c3aed"
+        />
+
+        <Text
+          style={[
+            styles.stepTitle,
+            currentTheme === 'dark' ? styles.darkText : styles.lightText,
+          ]}
+        >
+          {t('setup.widgetTitle')}
+        </Text>
+
+        <Text
+          style={[
+            styles.stepDescription,
+            currentTheme === 'dark'
+              ? styles.darkTextSecondary
+              : styles.lightTextSecondary,
+          ]}
+        >
+          {t('setup.widgetDescription')}
+        </Text>
+      </View>
+
+      <View style={styles.widgetPreview}>
+        <View style={styles.widgetPreviewTop}>
+          <View style={styles.widgetPreviewLeft}>
+            <Text style={styles.widgetPreviewTitle}>
+              🔥 {t('setup.widgetPreviewStreakTitle')}
+            </Text>
+            <Text style={styles.widgetPreviewStreakText}>
+              {t('setup.widgetPreviewStreakDays')}
+            </Text>
+          </View>
+
+          <View style={styles.widgetPreviewRight}>
+            <Text style={styles.widgetPercent}>75%</Text>
+            <Text style={styles.widgetStatusText}>
+              {t('setup.widgetPreviewProgress')}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.widgetProgressTrack}>
+          <View style={styles.widgetProgressValue} />
+        </View>
+
+        <View style={styles.widgetWeekRow}>
+          {[
+            { label: t('setup.widgetDayOne'), status: 'empty' },
+            { label: t('setup.widgetDayTwo'), status: 'empty' },
+            { label: t('setup.widgetDayThree'), status: 'empty' },
+            { label: t('setup.widgetDayFour'), status: 'done' },
+            { label: t('setup.widgetDayFive'), status: 'done' },
+            { label: t('setup.widgetDaySix'), status: 'done' },
+            { label: t('setup.widgetDaySeven'), status: 'current' },
+          ].map((day, index) => (
+            <View key={day.label + index} style={styles.widgetWeekDay}>
+              <Text style={styles.widgetWeekLabel}>{day.label}</Text>
+              <View
+                style={[
+                  styles.widgetWeekDot,
+                  day.status === 'empty'
+                    ? styles.widgetWeekDotEmpty
+                    : day.status === 'current'
+                      ? styles.widgetWeekDotCurrent
+                      : styles.widgetWeekDotDone,
+                ]}
+              />
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.widgetHintBox}>
+        <MaterialCommunityIcons name="gesture-tap" size={22} color="#38bdf8" />
+        <Text style={styles.widgetHintText}>{t('setup.widgetTapHint')}</Text>
+      </View>
+    </View>
+
+    <View>
+      <TouchableOpacity
+        style={[styles.widgetAddButton, isLoading && styles.disabledButton]}
+        onPress={handleAddWidget}
+        disabled={isLoading}
+      >
+        <MaterialCommunityIcons name="plus-box-outline" size={22} color="#fff" />
+        <Text style={styles.widgetAddButtonText}>
+          {isLoading ? t('setup.saving') : t('setup.addWidget')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.widgetLaterButton} onPress={handleSkipWidget}>
+        <Text
+          style={[
+            styles.widgetLaterText,
+            currentTheme === 'dark'
+              ? styles.darkTextSecondary
+              : styles.lightTextSecondary,
+          ]}
+        >
+          {t('setup.maybeLater')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.widgetBackButton} onPress={() => setCurrentStep(2)}>
+        <MaterialCommunityIcons name="arrow-left" size={18} color="#7c3aed" />
+        <Text style={styles.widgetBackButtonText}>{t('setup.back')}</Text>
+      </TouchableOpacity>
     </View>
   </View>
 )
@@ -239,7 +415,11 @@ const renderNotificationSettings = () => (
       <StatusBar barStyle={currentTheme === 'dark' ? 'light-content' : 'dark-content'} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {currentStep === 1 ? renderWelcomeSlide() : renderNotificationSettings()}
+        {currentStep === 1
+          ? renderWelcomeSlide()
+          : currentStep === 2
+            ? renderNotificationSettings()
+            : renderWidgetStep()}
       </ScrollView>
 
       <AlertComponent />
@@ -373,9 +553,14 @@ legalLink: {
   },
   progressFill: {
     height: '100%',
-    width: '100%',
     backgroundColor: '#7c3aed',
     borderRadius: 3,
+  },
+  progressFillStepTwo: {
+    width: '67%',
+  },
+  progressFillComplete: {
+    width: '100%',
   },
   progressText: {
     fontSize: 14,
@@ -491,6 +676,149 @@ settingCard: {
   skipText: {
     fontSize: 14,
     textDecorationLine: 'underline',
+  },
+  widgetPreview: {
+    backgroundColor: '#0b1430',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 24,
+    padding: 18,
+    marginTop: 8,
+  },
+  widgetPreviewTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  widgetPreviewLeft: {
+    flex: 1,
+  },
+  widgetPreviewRight: {
+    alignItems: 'flex-end',
+    maxWidth: '46%',
+  },
+  widgetPreviewTitle: {
+    color: '#ffffff',
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '900',
+  },
+  widgetPreviewStreakText: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+    marginTop: 5,
+  },
+  widgetPercent: {
+    color: '#4ade80',
+    fontSize: 26,
+    lineHeight: 30,
+    fontWeight: '900',
+  },
+  widgetStatusText: {
+    color: '#94a3b8',
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '800',
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  widgetProgressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#1e293b',
+    overflow: 'hidden',
+    marginTop: 19,
+  },
+  widgetProgressValue: {
+    width: '75%',
+    height: '100%',
+    backgroundColor: '#4ade80',
+    borderRadius: 4,
+  },
+  widgetWeekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 18,
+  },
+  widgetWeekDay: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  widgetWeekLabel: {
+    color: '#94a3b8',
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  widgetWeekDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    marginTop: 7,
+  },
+  widgetWeekDotEmpty: {
+    backgroundColor: '#334155',
+  },
+  widgetWeekDotDone: {
+    backgroundColor: '#4ade80',
+  },
+  widgetWeekDotCurrent: {
+    backgroundColor: '#67e8f9',
+  },
+  widgetHintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(56, 189, 248, 0.10)',
+    borderRadius: 16,
+    padding: 13,
+    marginTop: 14,
+  },
+  widgetHintText: {
+    flex: 1,
+    color: '#7dd3fc',
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '700',
+  },
+  widgetAddButton: {
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#7c3aed',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+  },
+  widgetAddButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  widgetLaterButton: {
+    alignItems: 'center',
+    paddingVertical: 15,
+  },
+  widgetLaterText: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  widgetBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 8,
+  },
+  widgetBackButtonText: {
+    color: '#7c3aed',
+    fontSize: 14,
+    fontWeight: '900',
   },
   darkText: { color: '#ffffff' },
   lightText: { color: '#0f172a' },

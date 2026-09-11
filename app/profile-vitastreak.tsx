@@ -21,9 +21,10 @@ import { supabase } from '../supabase-config'
 import { uploadImageToCloudinary } from '../cloudinary-service'
 import { useAuth } from '../auth-context'
 import useCustomAlert from '../hooks/useCustomAlert'
+import { t } from '@/i18n'
 import {
   getSupplements,
-  getTodaySupplements,
+  getTodayDoseSummary,
   getSupplementStreak,
 } from '../services/supplements/supplement-service'
 
@@ -39,7 +40,7 @@ export default function ProfileScreen() {
   const [birthDate, setBirthDate] = useState('')
   const [totalSupplements, setTotalSupplements] = useState(0)
   const [todayCompleted, setTodayCompleted] = useState(0)
-  const [todayTotal, setTodayTotal] = useState(0)
+  const [todayPending, setTodayPending] = useState(0)
   const [streak, setStreak] = useState(0)
 
   useEffect(() => {
@@ -54,7 +55,7 @@ setDisplayName(
   currentUser.user_metadata?.full_name ||
   currentUser.user_metadata?.name ||
   currentUser.user_metadata?.display_name ||
-  'Utilizador'
+  t('profile.defaultName')
 )
     setEmail(currentUser.email || '')
     setPhotoURL(
@@ -73,15 +74,15 @@ setDisplayName(
 
   const loadStats = async () => {
     try {
-      const [supplements, today, currentStreak] = await Promise.all([
+      const [supplements, todaySummary, currentStreak] = await Promise.all([
         getSupplements(),
-        getTodaySupplements(),
+        getTodayDoseSummary(),
         getSupplementStreak(),
       ])
 
       setTotalSupplements(supplements.length)
-      setTodayTotal(today.length)
-      setTodayCompleted(today.filter((item) => item.taken_today).length)
+      setTodayCompleted(todaySummary.completed)
+      setTodayPending(todaySummary.pending)
       setStreak(currentStreak)
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
@@ -93,14 +94,14 @@ setDisplayName(
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       console.log('PROFILE PHOTO START')
       if (status !== 'granted') {
-        showAlert('Permissão necessária', 'É necessário acesso à galeria.', [
+        showAlert(t('profile.permissionRequired'), t('profile.galleryPermission'), [
           { text: 'OK', onPress: () => {} },
         ])
         return
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -146,12 +147,12 @@ console.log('PROFILE BEFORE SUPABASE UPDATE')
       setPhotoURL(upload.secure_url)
       
 
-      showAlert('Sucesso', 'Foto de perfil atualizada.', [
+      showAlert(t('profile.success'), t('profile.photoUpdated'), [
         { text: 'OK', onPress: () => {} },
       ])
     } catch (error) {
       console.error('Erro ao atualizar foto:', error)
-      showAlert('Erro', 'Não foi possível atualizar a foto.', [
+      showAlert(t('profile.error'), t('profile.photoUpdateError'), [
         { text: 'OK', onPress: () => {} },
       ])
     } finally {
@@ -161,10 +162,10 @@ console.log('PROFILE BEFORE SUPABASE UPDATE')
   }
 
   const handleLogout = () => {
-    showAlert('Terminar sessão', 'Queres sair da tua conta?', [
-      { text: 'Cancelar', onPress: () => {} },
+    showAlert(t('profile.logoutTitle'), t('profile.logoutMessage'), [
+      { text: t('profile.cancel'), onPress: () => {} },
       {
-        text: 'Sair',
+        text: t('profile.logout'),
         style: 'destructive',
         onPress: async () => {
           await logout()
@@ -182,15 +183,15 @@ const sendPasswordReset = async () => {
   console.log('RESET ERROR:', error)
 
   if (error) {
-    showAlert('Erro', 'Não foi possível enviar o email para alterar a palavra-passe.', [
+    showAlert(t('profile.error'), t('profile.passwordEmailError'), [
       { text: 'OK', onPress: () => {} },
     ])
     return
   }
 
   showAlert(
-    'Email enviado',
-    'Enviámos um código para alterares a palavra-passe.',
+    t('profile.emailSent'),
+    t('profile.passwordCodeSent'),
     [
       {
         text: 'OK',
@@ -220,8 +221,8 @@ const sendPasswordReset = async () => {
             </TouchableOpacity>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Perfil</Text>
-              <Text style={styles.subtitle}>A tua rotina e conta VitaStreak.</Text>
+              <Text style={styles.title}>{t('profile.title')}</Text>
+              <Text style={styles.subtitle}>{t('profile.subtitle')}</Text>
             </View>
 
             <TouchableOpacity
@@ -256,41 +257,62 @@ const sendPasswordReset = async () => {
             <Text style={styles.name}>{displayName}</Text>
             <Text style={styles.email}>{email}</Text>
             {birthDate ? (
-  <Text style={styles.birthDate}>Nascimento: {birthDate}</Text>
+  <Text style={styles.birthDate}>{t('profile.birthDate', { date: birthDate })}</Text>
 ) : null}
           </View>
 
           <View style={styles.statsGrid}>
-            <StatCard label="Streak" value={`🔥 ${streak}`} />
-            <StatCard label="Hoje" value={`${todayCompleted}/${todayTotal}`} />
-            <StatCard label="Suplementos" value={`${totalSupplements}`} />
+            <View style={styles.statsTopRow}>
+              <StatCard label={t('profile.streak')} value={`🔥 ${streak}`} />
+              <StatCard label={t('profile.supplements')} value={`${totalSupplements}`} />
+            </View>
+
+            <View style={styles.todayStatCard}>
+              <Text style={styles.todayStatValue}>
+                {todayCompleted === 0 && todayPending === 0
+                  ? t('profile.noDoses')
+                  : t('profile.todaySummary', {
+                      completed: todayCompleted,
+                      completedLabel:
+                        todayCompleted === 1
+                          ? t('profile.doseCompletedSingular')
+                          : t('profile.doseCompletedPlural'),
+                      pending: todayPending,
+                      pendingLabel:
+                        todayPending === 1
+                          ? t('profile.dosePendingSingular')
+                          : t('profile.dosePendingPlural'),
+                    })}
+              </Text>
+              <Text style={styles.statLabel}>{t('profile.today')}</Text>
+            </View>
           </View>
 
           <View style={styles.menuCard}>
             <MenuItem
   icon="calendar-outline"
-  title="Histórico"
+  title={t('profile.history')}
   onPress={() => router.push('/history' as any)}
 />
             <MenuItem
               icon="nutrition-outline"
-              title="Os meus suplementos"
+              title={t('profile.mySupplements')}
               onPress={() => router.push('/supplements' as any)}
             />
             <MenuItem
   icon="key-outline"
-  title="Mudar palavra-passe"
+  title={t('profile.changePassword')}
   onPress={sendPasswordReset}
 />
             <MenuItem
               icon="log-out-outline"
-              title="Terminar sessão"
+              title={t('profile.logoutTitle')}
               danger
               onPress={handleLogout}
             />
           </View>
 
-          <Text style={styles.footer}>VitaStreak • versão 1.0.0</Text>
+          <Text style={styles.footer}>{t('profile.footer')}</Text>
         </ScrollView>
 
         <AlertComponent />
@@ -302,7 +324,7 @@ const sendPasswordReset = async () => {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statValue} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.62}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   )
@@ -425,9 +447,30 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statsGrid: {
-    flexDirection: 'row',
     gap: 10,
     marginBottom: 18,
+  },
+  statsTopRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  todayStatCard: {
+    width: '100%',
+    minHeight: 92,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todayStatValue: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   statCard: {
     flex: 1,

@@ -269,7 +269,7 @@ try {
         throw new Error('Erro ao criar utilizador');
       }
       
-      console.log('[Register] Utilizador criado, a guardar perfil...');
+      console.log('[Register] Pedido de registo processado', { hasSession: !!data.session });
       
       // Criar perfil do utilizador
       if (data.session) {
@@ -283,7 +283,7 @@ try {
   setCurrentUser(data.user);
 }
 
-console.log('[Register] Registo concluído');
+console.log('[Register] Fluxo de registo concluído');
 
 return data.user;
     } catch (error) {
