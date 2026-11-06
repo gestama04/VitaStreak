@@ -14,10 +14,9 @@ const corsHeaders = {
 const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY') ?? '')
 
 const GEMINI_MODELS = [
-  'gemini-3.7-flash',
   'gemini-3.6-flash',
   'gemini-3.5-flash-lite',
-  'gemini-2.5-flash',
+  'gemini-3.8-flash',
 ]
 
 function jsonResponse(body: unknown, status = 200) {
@@ -41,16 +40,39 @@ async function generateWithFallback(parts: GeminiContentPart[]) {
         model: modelName,
       })
 
-      return await model.generateContent(parts)
+      const result = await model.generateContent(parts)
+
+      console.log('Gemini model succeeded:', modelName)
+
+      return result
     } catch (error) {
-      console.error(`Gemini model failed: ${modelName}`, error)
+      const status =
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        typeof error.status === 'number'
+          ? error.status
+          : null
+
+      console.warn('Gemini model unavailable:', {
+        model: modelName,
+        status,
+        message:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      })
+
       lastError = error
+
+      if (status === 400 || status === 401 || status === 403) {
+        throw error
+      }
     }
   }
 
-  throw lastError
+  throw lastError ?? new Error('No Gemini model was available')
 }
-
 function extractJson(text: string) {
   const cleaned = text.replace(/```json|```/g, '').trim()
   const firstBrace = cleaned.indexOf('{')

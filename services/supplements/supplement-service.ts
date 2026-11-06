@@ -691,79 +691,157 @@ export async function getSupplementHistoryDays(days = 30) {
     })) as SupplementHistoryDay[]
 }
 
-async function refreshTodayDayStatus(userId: string) {
-  const today = getDateString()
-  const now = new Date()
+async function refreshDayStatuses(userId: string, days = 7) {
+  const safeDays = Math.max(1, Math.floor(days))
+  const today = new Date()
+  const fromDate = new Date(today)
+  fromDate.setDate(today.getDate() - safeDays + 1)
 
-  const { data: supplements, error: supplementsError } = await supabase
-    .from('supplements')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_active', true)
+  const from = getDateString(fromDate)
+  const to = getDateString(today)
 
-  if (supplementsError) throw supplementsError
+  const [supplementsResult, logsResult, existingStatusesResult] =
+    await Promise.all([
+      supabase
+        .from('supplements')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true),
+      supabase
+        .from('supplement_logs')
+        .select('supplement_id, taken_date, reminder_time, status')
+        .eq('user_id', userId)
+        .eq('status', 'taken')
+        .gte('taken_date', from)
+        .lte('taken_date', to),
+      supabase
+        .from('supplement_day_status')
+        .select('date, completed, frozen, frozen_at')
+        .eq('user_id', userId)
+        .gte('date', from)
+        .lte('date', to),
+    ])
 
-  const { data: logs, error: logsError } = await supabase
-    .from('supplement_logs')
-    .select('supplement_id, taken_date, reminder_time, status')
-    .eq('user_id', userId)
-    .eq('taken_date', today)
-    .eq('status', 'taken')
+  if (supplementsResult.error) throw supplementsResult.error
+  if (logsResult.error) throw logsResult.error
+  if (existingStatusesResult.error) throw existingStatusesResult.error
 
-  if (logsError) throw logsError
+  const supplements = (supplementsResult.data || []) as Supplement[]
+  const logs = logsResult.data || []
+  const existingStatuses = existingStatusesResult.data || []
 
-  const expectedTakes = (supplements || [])
-    .filter((supplement) =>
-      isSupplementScheduledForDate(supplement as Supplement, now)
+  const logsByDate = new Map<string, Set<string>>()
+
+  for (const log of logs) {
+    const dateLogs = logsByDate.get(log.taken_date) ?? new Set<string>()
+    dateLogs.add(
+      `${log.supplement_id}-${normalizeTime(log.reminder_time)}`
     )
-    .flatMap((supplement: Supplement) =>
-      getReminderTimes(supplement).map((time) => ({
-        supplement_id: supplement.id,
-        reminder_time: normalizeTime(time),
-      }))
+    logsByDate.set(log.taken_date, dateLogs)
+  }
+
+  const existingByDate = new Map(
+    existingStatuses.map((status: any) => [status.date, status])
+  )
+
+  const rowsToUpsert: Array<{
+    user_id: string
+    date: string
+    completed: boolean
+    completed_at: string | null
+    frozen: boolean
+    frozen_at: string | null
+    updated_at: string
+  }> = []
+  const datesToDelete: string[] = []
+  const nowIso = new Date().toISOString()
+
+  for (let index = 0; index < safeDays; index++) {
+    const date = new Date(fromDate)
+    date.setDate(fromDate.getDate() + index)
+
+    const dateString = getDateString(date)
+    const existing = existingByDate.get(dateString) as
+      | {
+          completed?: boolean
+          frozen?: boolean
+          frozen_at?: string | null
+        }
+      | undefined
+
+    const expectedTakes = supplements
+      .filter((supplement) =>
+        isSupplementScheduledForDate(supplement, date)
+      )
+      .flatMap((supplement) =>
+        getReminderTimes(supplement).map((time) => ({
+          supplement_id: supplement.id,
+          reminder_time: normalizeTime(time),
+        }))
+      )
+
+    if (expectedTakes.length === 0) {
+      if (existing?.frozen) {
+        rowsToUpsert.push({
+          user_id: userId,
+          date: dateString,
+          completed: false,
+          completed_at: null,
+          frozen: true,
+          frozen_at: existing.frozen_at ?? nowIso,
+          updated_at: nowIso,
+        })
+      } else if (existing) {
+        datesToDelete.push(dateString)
+      }
+
+      continue
+    }
+
+    const dateLogs = logsByDate.get(dateString) ?? new Set<string>()
+    const completed = expectedTakes.every((take) =>
+      dateLogs.has(`${take.supplement_id}-${take.reminder_time}`)
     )
 
-  if (expectedTakes.length === 0) {
+    rowsToUpsert.push({
+      user_id: userId,
+      date: dateString,
+      completed,
+      completed_at: completed ? nowIso : null,
+      frozen: existing?.frozen === true,
+      frozen_at:
+        existing?.frozen === true
+          ? existing.frozen_at ?? nowIso
+          : null,
+      updated_at: nowIso,
+    })
+  }
+
+  if (datesToDelete.length > 0) {
     const { error: deleteError } = await supabase
       .from('supplement_day_status')
       .delete()
       .eq('user_id', userId)
-      .eq('date', today)
+      .in('date', datesToDelete)
 
     if (deleteError) throw deleteError
-    return
   }
 
-  const logsSet = new Set(
-    (logs || []).map(
-      (log: any) =>
-        `${log.supplement_id}-${normalizeTime(log.reminder_time)}`
-    )
-  )
-
-  const completed = expectedTakes.every((take) =>
-    logsSet.has(`${take.supplement_id}-${take.reminder_time}`)
-  )
-
-  const nowIso = new Date().toISOString()
-
-  const { error } = await supabase
-    .from('supplement_day_status')
-    .upsert(
-      {
-        user_id: userId,
-        date: today,
-        completed,
-        completed_at: completed ? nowIso : null,
-        updated_at: nowIso,
-      },
-      {
+  if (rowsToUpsert.length > 0) {
+    const { error: upsertError } = await supabase
+      .from('supplement_day_status')
+      .upsert(rowsToUpsert, {
         onConflict: 'user_id,date',
-      }
-    )
+      })
 
-  if (error) throw error
+    if (upsertError) throw upsertError
+  }
 }
+
+async function refreshTodayDayStatus(userId: string) {
+  await refreshDayStatuses(userId, 1)
+}
+
 export type SupplementDayStatus = {
   date: string
   completed: boolean
@@ -777,9 +855,12 @@ export async function getSupplementDayStatusDays(days = 7) {
 
   if (!user) throw new Error('Utilizador não autenticado')
 
+  const safeDays = Math.max(1, Math.floor(days))
+  await refreshDayStatuses(user.id, safeDays)
+
   const today = new Date()
-  const fromDate = new Date()
-  fromDate.setDate(today.getDate() - days + 1)
+  const fromDate = new Date(today)
+  fromDate.setDate(today.getDate() - safeDays + 1)
 
   const from = getDateString(fromDate)
 
@@ -788,6 +869,8 @@ export async function getSupplementDayStatusDays(days = 7) {
     .select('date, completed, frozen')
     .eq('user_id', user.id)
     .gte('date', from)
+    .lte('date', getDateString(today))
+    .order('date', { ascending: true })
 
   if (error) throw error
 
