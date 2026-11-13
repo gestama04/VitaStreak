@@ -1,46 +1,64 @@
 # 💊 VitaStreak
 
-> AI-powered supplement routine manager for Android, built with **React Native**, **Expo**, **TypeScript**, **Supabase**, and **Google Gemini**.
+> AI-assisted supplement routine manager for Android, built with React Native, Expo, TypeScript, Supabase, PostgreSQL, and Google Gemini.
 
 <p align="center">
   <img src="assets/images/vitastreak-logo.png" alt="VitaStreak logo" width="140" />
 </p>
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.gestama.vitastreak"><strong>Download VitaStreak on Google Play</strong></a>
+  <a href="https://play.google.com/store/apps/details?id=com.gestama.vitastreak">
+    <strong>Download on Google Play</strong>
+  </a>
+  ·
+  <a href="https://github.com/gestama04/VitaStreak">
+    <strong>View source code</strong>
+  </a>
 </p>
 
 ---
 
-## 📱 Overview
+## Overview
 
-**VitaStreak** helps users organize supplement routines, schedule reminders, track daily adherence, maintain streaks, and review routine information with AI-assisted tools.
+VitaStreak helps users organize supplement routines, schedule reminders, track daily adherence, maintain streaks, and review routine information through AI-assisted workflows.
 
-The Android app combines local notifications, cloud synchronization, an Android home-screen widget, label recognition, and a bilingual interface in Portuguese and English.
+The application combines:
 
-> **Medical disclaimer:** VitaStreak is an organizational and educational tool. It does not provide diagnosis, prescribe treatment, recommend medical dosages, or replace advice from a qualified healthcare professional.
+- Secure authentication
+- Flexible supplement schedules
+- Local notifications
+- Adherence and streak tracking
+- AI-assisted label extraction
+- Supabase Edge Functions
+- PostgreSQL with Row Level Security
+- Cloudinary image storage
+- Native Android home-screen widget
+- Portuguese and English localization
+
+> **Medical disclaimer:** VitaStreak is an organizational and educational tool. It does not diagnose diseases, prescribe treatments, recommend dosages, or replace advice from a qualified healthcare professional.
 
 ---
 
-## ✨ Features
+## Features
 
-### 👤 Account and profile
+### 👤 Authentication and profiles
 
-- Secure authentication with Supabase Auth
-- Email verification and password recovery
+- Supabase Auth authentication
+- Email verification
+- Password recovery
 - User profile management
-- Profile photo upload
-- Account deletion through a Supabase Edge Function
+- Profile image uploads
+- Account deletion through a protected Edge Function
 
 ### 💊 Supplement management
 
 - Add, edit, activate, deactivate, and remove supplements
 - Store product images
-- Manage brands, dosages, units, ingredients, serving information, and schedules
-- View complete supplement details
+- Manage brands, ingredients, serving information, units, and dosages
+- Configure individual supplement routines
 - Mark individual or all daily doses as completed
 
-### ⏰ Smart reminders
+### ⏰ Flexible reminders
 
 - Multiple reminders per day
 - Daily schedules
@@ -50,9 +68,9 @@ The Android app combines local notifications, cloud synchronization, an Android 
 - Local notifications
 - Automatic notification rescheduling when routines change
 
-### 🔥 Progress, streaks, and history
+### 🔥 Progress and adherence
 
-- Daily adherence and progress tracking
+- Daily completion tracking
 - Streak calculation
 - Weekly consistency overview
 - Last 30 days of history
@@ -61,49 +79,66 @@ The Android app combines local notifications, cloud synchronization, an Android 
 
 ### 📲 Android home-screen widget
 
+The native widget displays:
+
 - Current streak
 - Daily completion percentage
 - Completed and total doses
 - Seven-day status overview
 - Portuguese and English content
-- Tap to open the VitaStreak Home screen
+- Direct navigation to the VitaStreak home screen
 
-### 🤖 VitaStreak AI
-
-VitaStreak uses Google Gemini through Supabase Edge Functions. The API key remains on the server rather than in the mobile application.
-
-AI-assisted features include:
-
-- Supplement label analysis from photographs
-- Structured extraction of product and ingredient information
-- General supplement routine review
-- Identification of possible ingredient duplication
-- General timing observations
-- Suggested questions to discuss with a healthcare professional
-- Routine-aware chat in Portuguese and English
-
-AI output is informational only and is constrained not to diagnose, prescribe treatment, or recommend dosages.
-
-### ☁️ Cloud features
-
-- Supabase Authentication
-- PostgreSQL database
-- Row Level Security
-- Supabase Edge Functions
-- Cloudinary image storage
-
-### 🎨 User experience
-
-- Modern Android interface
-- Light and dark themes
-- Portuguese and English localization
-- Fast navigation with Expo Router
-- Responsive screen layouts
-- First-run setup for notifications, legal acceptance, and widget installation
+> The widget requires an Android development, preview, or production build. It is not available in Expo Go.
 
 ---
 
-## 🛠️ Tech stack
+## AI-assisted workflows
+
+VitaStreak uses Google Gemini through Supabase Edge Functions. The Gemini API key remains server-side and is never exposed in the mobile application.
+
+### Label extraction
+
+The label workflow:
+
+1. The user captures or selects a supplement label.
+2. The image is optimized on the device.
+3. The application calls a Supabase Edge Function.
+4. The Edge Function sends the image and instructions to Google Gemini.
+5. Gemini returns structured product and ingredient information.
+6. The response is validated and normalized.
+7. The user reviews the information before saving it.
+
+### Routine review and chat
+
+The application also supports AI-assisted routine reviews and contextual chat using the user's active supplement data and selected application language.
+
+AI-assisted features may include:
+
+- Product and ingredient extraction
+- Possible ingredient duplication identification
+- General timing observations
+- Routine summaries
+- Suggested questions for discussion with a healthcare professional
+- Portuguese and English routine-aware chat
+
+AI output is informational only and does not provide diagnosis, treatment, or dosage recommendations.
+
+---
+
+## Cloud architecture
+
+- **Authentication:** Supabase Auth
+- **Database:** PostgreSQL
+- **Authorization:** Row Level Security
+- **Server-side workflows:** Supabase Edge Functions
+- **AI integration:** Google Gemini API
+- **Image storage:** Cloudinary
+- **Notifications:** Expo Notifications
+- **Mobile application:** React Native and Expo
+
+---
+
+## Tech stack
 
 ### Mobile
 
@@ -113,7 +148,7 @@ AI output is informational only and is constrained not to diagnose, prescribe tr
 - TypeScript
 - React Native Android Widget
 
-### Backend
+### Backend and data
 
 - Supabase
 - PostgreSQL
@@ -124,8 +159,11 @@ AI output is informational only and is constrained not to diagnose, prescribe tr
 
 - Google Gemini API
 - `@google/generative-ai`
+- Structured extraction workflows
+- Server-side API integration
+- Response validation and normalization
 
-### Cloud and device services
+### Device and cloud services
 
 - Cloudinary
 - Expo Notifications
@@ -137,36 +175,40 @@ AI output is informational only and is constrained not to diagnose, prescribe tr
 
 ---
 
-## 📁 Project structure
+## Project structure
 
 ```text
-app/
-assets/
-components/
-contexts/
-hooks/
-i18n/
-services/
-supabase/
-types/
-utils/
-widgets/
+app/             Application routes and screens
+assets/          Images, icons, and static assets
+components/      Reusable interface components
+contexts/        Application state providers
+hooks/           Reusable React hooks
+i18n/            Portuguese and English translations
+services/        API and application services
+supabase/        Database and Edge Function configuration
+types/           Shared TypeScript types
+utils/            Shared utility functions
+widgets/         Native Android widget implementation
 ```
 
 ---
 
-## 🚀 Local development
+## Local development
 
-Clone the repository:
+### Requirements
+
+- Node.js
+- npm
+- Android development environment or Expo-compatible device
+- Supabase project
+- Cloudinary account
+- Google Gemini API access
+
+### Installation
 
 ```bash
 git clone https://github.com/gestama04/VitaStreak.git
 cd VitaStreak
-```
-
-Install dependencies:
-
-```bash
 npm install
 ```
 
@@ -184,11 +226,11 @@ npx expo-doctor
 npx expo install --check
 ```
 
-> The Android widget is a native feature and is not available in Expo Go. Use an Android development, preview, or production build to test it.
+> Native Android features, including the home-screen widget, require a development, preview, or production build.
 
 ---
 
-## 🔐 Environment variables
+## Environment variables
 
 Create a `.env` file in the project root:
 
@@ -199,33 +241,26 @@ EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 ```
 
-The Gemini API key must not be stored in the frontend. Add it to Supabase Secrets:
+Configure the Gemini API key as a Supabase secret:
 
 ```bash
 npx supabase secrets set GEMINI_API_KEY=your_api_key
 ```
 
-For remote EAS builds, provide `google-services.json` as a `GOOGLE_SERVICES_JSON` file environment variable in the appropriate EAS environment.
+For remote EAS builds, provide `google-services.json` through the appropriate EAS environment configuration.
 
-Never commit `.env`, API keys, service-role keys, keystores, or private credentials.
+Never commit:
 
----
-
-## 🧠 AI workflow
-
-1. The user captures or selects a supplement label.
-2. The app optimizes the image.
-3. The app calls a Supabase Edge Function.
-4. The Edge Function sends the image and instructions to Google Gemini.
-5. The model returns structured information.
-6. The Edge Function validates and normalizes the response.
-7. The user reviews the information before saving it.
-
-Routine review and chat follow the same server-side model, using active supplement data and the selected application language.
+- `.env` files
+- API keys
+- Supabase service-role keys
+- Android keystores
+- Private credentials
+- Production secrets
 
 ---
 
-## 📦 Android builds
+## Android builds
 
 Preview APK:
 
@@ -239,67 +274,78 @@ Production Android App Bundle:
 npx eas-cli@latest build -p android --profile production
 ```
 
-Current Android configuration:
+### Current Android configuration
 
-- Package: `com.gestama.vitastreak`
-- Minimum Android API: 24
-- Target Android API: 36
-- Expo SDK: 57
-- Published version: **1.1.0**
-- Version code: **10**
+- **Package:** `com.gestama.vitastreak`
+- **Minimum Android API:** 24
+- **Target Android API:** 36
+- **Expo SDK:** 57
+- **Published version:** `1.1.2`
+- **Version code:** `10`
 
 ---
 
-## 📸 Screenshots
+## Screenshots and release
 
-Current Google Play screenshots showcase:
+The current Google Play listing includes screenshots of:
 
 - Home dashboard
 - AI-assisted label recognition
-- AI-generated supplement summary
-- Today's routine
-- Supplement list
+- AI-generated supplement summaries
+- Daily supplement routines
+- Supplement management
 
-See the published listing on [Google Play](https://play.google.com/store/apps/details?id=com.gestama.vitastreak).
-
----
-
-## ⚠️ Project status
-
-VitaStreak **1.1.0 is published on Google Play**.
-
-The repository is maintained as an active product and portfolio project. Running the complete application locally requires configuration of its external cloud services.
-
-Planned future improvements include expanded AI document understanding, voice input, refined Streak Freeze rewards, and additional localization based on user demand.
+[View VitaStreak on Google Play](https://play.google.com/store/apps/details?id=com.gestama.vitastreak)
 
 ---
 
-## ⚕️ Medical disclaimer
+## Project status
 
-VitaStreak helps users organize supplement routines and provides general AI-generated information.
+VitaStreak **1.1.2 is published on Google Play**.
+
+The repository is actively maintained as a product and portfolio project. Running the complete application locally requires configuration of Supabase, Cloudinary, Google Gemini, Android tooling, and other external services.
+
+Possible future improvements include:
+
+- Expanded AI document understanding
+- Voice input
+- Refined Streak Freeze rewards
+- Additional localization
+- Further accessibility improvements
+- More detailed routine analytics
+
+---
+
+## Medical disclaimer
+
+VitaStreak provides organizational functionality and general AI-generated information.
 
 The application:
 
-- does **not** diagnose diseases
-- does **not** prescribe treatments
-- does **not** recommend medical dosages
-- does **not** replace professional medical advice
+- Does **not** diagnose diseases
+- Does **not** prescribe treatments
+- Does **not** recommend medical dosages
+- Does **not** replace professional medical advice
 
-Always consult a qualified healthcare professional before making decisions regarding supplements or medication.
-
----
-
-## 📄 License
-
-This project is available for portfolio and educational purposes. No permission is granted to redistribute it as a competing commercial product without authorization.
+Always consult a qualified healthcare professional before making decisions about supplements or medication.
 
 ---
 
-## 👨‍💻 Author
+## License
+
+This project is available for portfolio and educational purposes.
+
+No permission is granted to redistribute or commercially exploit the project as a competing product without prior authorization.
+
+---
+
+## Author
 
 **Bernardo Silva**
 
-Software Engineer / Mobile Developer / Web Lead
+Software Engineer · React Native · TypeScript · Frontend
 
-- GitHub: https://github.com/gestama04
-- LinkedIn: https://www.linkedin.com/in/eng-bernardo-silva
+- **GitHub:** [github.com/gestama04](https://github.com/gestama04)
+- **LinkedIn:** [linkedin.com/in/eng-bernardo-silva](https://www.linkedin.com/in/eng-bernardo-silva)
+- **Portfolio:** [gestama04.github.io/CURRICULO-DIGITAL](https://gestama04.github.io/CURRICULO-DIGITAL/)
+- **Google Play:** [VitaStreak](https://play.google.com/store/apps/details?id=com.gestama.vitastreak)
